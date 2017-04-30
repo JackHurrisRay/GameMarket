@@ -17,6 +17,7 @@ module.exports =
         "error_wrongdata":102,
 
         "error_database":110,
+        "error_notlogin":120,
 
 
         //login

@@ -7,6 +7,7 @@ var cookie  = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 
+var protocal = require('./protocal');
 var system  = require('./serverSystem');
 var sysLogin = require('./sysLogin')(system);
 
@@ -39,9 +40,23 @@ module.exports = function(app)
     });
 
     //trade
-    app.post('/trade', function(req,res)
-    {
+    app.use('/trade',
+        function(req,res,next)
+        {
+            if( system.connected(req) == 1 )
+            {
+                next();
+            }
+            else
+            {
+                protocal.send_error(res, protocal.error_code.error_notlogin);
+            }
+        }
+    );
 
+    app.post('/trade/test', function(req,res)
+    {
+        res.send("Welcome to Jack.L's Server");
     });
 
 
