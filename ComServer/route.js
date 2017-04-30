@@ -15,10 +15,7 @@ module.exports = function(app)
     //use
     app.use(bodyParser.json());
     app.use(bodyParser.raw());
-    //app.use(cookie());
-    //app.use(session({secret:'server',name:'user',cookie:{maxAge:6000}}));
-
-    //app.use(bodyParser.urlencoded());
+    app.use(cookie());
 
     //login
     app.post('/login/test', function(req,res)

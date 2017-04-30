@@ -18,9 +18,15 @@ module.exports =
 
         "error_database":110,
 
+
         //login
         "error_register_account_exist":201,
         "error_login_wrong_data":202,
+
+        "error_login_already_in":210,
+        "error_login_already_out":211,
+        "error_login_in_timeout":212,
+
     },
     send_ok:function(res, data)
     {

@@ -48,7 +48,8 @@ module.exports =
                             {
                                 if( cursor == null )
                                 {
-                                    var _account_data = {"ID":data.account_id,"PWD":data.account_pwd,"create_time":new Date()};
+                                    var _createTime = new Date();
+                                    var _account_data = {"ID":data.account_id,"PWD":data.account_pwd,"create_time":_createTime.getTime()};
                                     _collection.insert(_account_data,
                                         function(error, result)
                                         {
@@ -76,12 +77,16 @@ module.exports =
             },
             login:function(req,res)
             {
-                var request  = req;
-                var response = res;
-
                 var data = req.body;
+                const uid = data.account_id;
+                const hr_checkCookies = system.checkCookies(req, uid);
 
-                if( data.account_id != null && data.account_pwd )
+                if( hr_checkCookies == 1 )
+                {
+                    ////already login
+                    protocal.send_error(res, protocal.error_code.error_login_already_in);
+                }
+                else if( data.account_id != null && data.account_pwd && hr_checkCookies == 0)
                 {
                     var where = {"ID": data.account_id, "PWD":data.account_pwd};
 
@@ -94,11 +99,8 @@ module.exports =
                                 else
                                 {
                                     //account exist
-
-                                    res.cookie("user",{uid:data.account_id},{maxAge:600000, httpOnly:false})
-
-                                    system.login(cursor);
-                                    protocal.send_ok(res, cursor);
+                                    system.login(req, res, uid, cursor);
+                                    protocal.send_ok(res, cursor.data);
                                 }
                             }
                         });
@@ -107,8 +109,23 @@ module.exports =
             },
             logout:function(req,res)
             {
-                res.clearCookie();
-                protocal.send_ok(res, null);
+                var req_cookies = req.cookies;
+                var _cookies_uid = null;
+                if( req_cookies.uid )
+                {
+                    _cookies_uid = req_cookies.uid.uid;
+                }
+
+                if( _cookies_uid && system.checkCookies(req, _cookies_uid) == 1 )
+                {
+                    system.clearCookie(res, _cookies_uid);
+                    protocal.send_ok(res, null);
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_login_already_out);
+                }
+
             },
         };
 
