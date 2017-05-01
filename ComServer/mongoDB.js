@@ -3,6 +3,7 @@
  */
 
 var mongodb = require('mongodb');
+var comtrade = require('./comtrade');
 
 module.exports =
     (
@@ -12,8 +13,10 @@ module.exports =
             {
                 Server:null,
                 Db:null,
+                isConn:false,
                 init:function()
                 {
+                    var SELF = this;
                     var DBServer = mongodb.Server;
                     var DataBase = mongodb.Db;
 
@@ -26,6 +29,7 @@ module.exports =
                             if(!err)
                             {
                                 console.log('MongoDB connected Successfull');
+                                SELF.isConn = true;
                             }
                         }
                     );
@@ -34,6 +38,7 @@ module.exports =
                 {
                     return this.Db;
                 }
+
             };
 
             return _instance;

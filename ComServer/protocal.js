@@ -15,9 +15,13 @@ module.exports =
         "error_unknown":100,
         "error_format":101,
         "error_wrongdata":102,
+        "error_noaccount":103,
 
         "error_database":110,
+        "error_notfinddata":111,
         "error_notlogin":120,
+
+        "error_right_limited":121,
 
 
         //login
@@ -52,6 +56,20 @@ module.exports =
         msg.error_code = this.error_code.error_database;
         msg.error_data = error_data;
         res.send(JSON.stringify(msg));
+    },
+    checkDBError:function checkDBError(res, error)
+    {
+        var check = false;
+        if( !error )
+        {
+            check = true;
+        }
+        else
+        {
+            this.send_error_db(res, error);
+        }
+
+        return check;
     }
 };
 

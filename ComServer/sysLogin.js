@@ -3,27 +3,14 @@
  */
 var protocal = require('./protocal');
 
-function checkDBError(res, error)
-{
-    var check = false;
-    if( !error )
-    {
-        check = true;
-    }
-    else
-    {
-        protocal.send_error_db(res, error);
-    }
-
-    return check;
-}
-
 module.exports =
     function(system)
     {
+        var checkDBError = protocal.checkDBError;
         var _sys = system;
         var _db  = _sys.getDB();
         var _collection = _db.collection('Account');
+        _sys.COLLECTION = _collection;
 
         var _instance;
 
@@ -49,7 +36,22 @@ module.exports =
                                 if( cursor == null )
                                 {
                                     var _createTime = new Date();
-                                    var _account_data = {"ID":data.account_id,"PWD":data.account_pwd,"create_time":_createTime.getTime()};
+
+                                    var _account_ex =
+                                    {
+                                        "Jurisdiction":0,
+                                        "content":[]
+                                    };
+
+                                    var _account_data =
+                                    {
+                                        "ID":data.account_id,"PWD":data.account_pwd,"create_time":_createTime.getTime(),
+                                        "data":
+                                        {
+                                            "extern":_account_ex
+                                        }
+                                    };
+
                                     _collection.insert(_account_data,
                                         function(error, result)
                                         {
@@ -90,6 +92,7 @@ module.exports =
                 {
                     var where = {"ID": data.account_id, "PWD":data.account_pwd};
 
+                    var _findCollection =
                     _collection.findOne(where,
                         function(error, cursor) {
                             if (checkDBError(res, error)) {

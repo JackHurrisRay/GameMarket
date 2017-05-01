@@ -16,9 +16,23 @@ module.exports =
             var instance =
             {
                 ACCOUNTS:{},
+                COLLECTION:null,
                 getDB:function()
                 {
                     return dbSystem.getDB();
+                },
+                isDBConn:function()
+                {
+                    return dbSystem.isConn;
+                },
+                saveAccount:function(uid) {
+                    var account = this.ACCOUNTS[uid];
+
+                    if (account)
+                    {
+                        this.COLLECTION.update({ID:uid},account);
+                    }
+
                 },
                 clearCookie:function(res, uid)
                 {
@@ -50,6 +64,7 @@ module.exports =
                 },
                 connected:function(req)
                 {
+                    ////////
                     var req_cookies = req.cookies;
                     var _cookies_uid = null;
                     if( req_cookies.uid )
@@ -57,6 +72,7 @@ module.exports =
                         _cookies_uid = req_cookies.uid.uid;
                     }
 
+                    ////////
                     return this.checkCookies(req, _cookies_uid) == 1;
                 },
                 checkCookies:function(req, uid)
@@ -111,6 +127,10 @@ module.exports =
                                     ////////
                                     //already login
                                     _check = 1;
+
+                                    ////////
+                                    req.__account = account;
+                                    req.__collection = this.COLLECTION;
                                 }
                             }
                         }
@@ -124,6 +144,7 @@ module.exports =
 
                     ////
                     this.ACCOUNTS[uid] = account;
+
                     if( !this.ACCOUNTS[uid].data )
                     {
                         this.ACCOUNTS[uid].data = {};
@@ -136,6 +157,7 @@ module.exports =
                         case 0:
                         {
                             this.setCookie(res, uid, this.ACCOUNTS[uid]);
+                            this.saveAccount(uid);
                             break;
                         }
                         case 1:
@@ -160,6 +182,8 @@ module.exports =
 
                 }
             };
+
+
 
             return instance;
         }

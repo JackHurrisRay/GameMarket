@@ -2,7 +2,7 @@
  * Created by Jack.L on 2017/4/29.
  */
 
-var PORT = 1021;
+const PORT = 1021;
 
 var http = require('http');
 var url=require('url');
@@ -10,6 +10,7 @@ var fs=require('fs');
 var mine=require('./mine').types;
 var path=require('path');
 
+////
 var express = require('express');
 var serverApp = express();
 
@@ -63,3 +64,8 @@ var server = serverApp.listen(PORT, function(){
 
     console.log('SERVER＿RUNNING: http://%s:%s', host, port);
 });
+
+////////////////
+
+
+

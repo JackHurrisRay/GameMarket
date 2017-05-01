@@ -10,6 +10,9 @@ var bodyParser = require('body-parser');
 var protocal = require('./protocal');
 var system  = require('./serverSystem');
 var sysLogin = require('./sysLogin')(system);
+var comtrade = require('./comtrade')(system);
+
+var tcpServer = require('./TCPServer');
 
 module.exports = function(app)
 {
@@ -59,8 +62,34 @@ module.exports = function(app)
         res.send("Welcome to Jack.L's Server");
     });
 
+    app.put('/trade/create_content',
+        function(req,res)
+        {
+            comtrade.create_content(req,res);
+        }
+    );
 
+    app.delete('/trade/delete_content',
+        function(req, res)
+        {
+            comtrade.delete_content(req,res);
+        }
+    );
 
+    app.put('/trade/get_all_content',
+        function(req, res)
+        {
+            comtrade.get_all_content(req, res);
+        }
+    );
 
+    app.put('/trade/update_content',
+        function(req, res)
+        {
+            comtrade.update_content(req, res);
+        }
+    );
 
+    ////
+    tcpServer.run();
 }
