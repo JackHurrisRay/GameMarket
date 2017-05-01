@@ -32,6 +32,9 @@ module.exports =
         "error_login_already_out":211,
         "error_login_in_timeout":212,
 
+        //trade
+        "error_content_already":221,
+
     },
     send_ok:function(res, data)
     {

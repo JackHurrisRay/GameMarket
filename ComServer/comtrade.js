@@ -16,6 +16,11 @@ function CHECK_STRING_LIMIT(data, length)
     return check;
 }
 
+function CHECK_NUMBER(data)
+{
+    return data && typeof data == 'number';
+}
+
 function CHECK_OBJECT(data)
 {
     return data && typeof data == 'object';
@@ -39,9 +44,11 @@ module.exports =
                 var content_array = this.CONTENT_ARRAY;
                 var dataArray = [];
 
+                var find =
                 this.COLLECTION_TRADE.find({},
                     function(error, cursor)
                     {
+                        var _find = find;
                         cursor.forEach(
                             function(doc)
                             {
@@ -86,12 +93,13 @@ module.exports =
             },
             create_content:function(req,res)
             {
+                var SELF = this;
                 if( this.check_Jurisdiction(req, res) )
                 {
                     const data = req.body;
 
                     var check = false;
-                    if(  CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) )
+                    if(  CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold))
                     {
                         check = true;
                     }
@@ -127,7 +135,7 @@ module.exports =
                                 if( checkDBError(res, error) )
                                 {
                                     protocal.send_ok(res, {UID:_UID});
-                                    this.CONTENT_ARRAY[_UID] = _content;
+                                    SELF.CONTENT_ARRAY[_UID] = _content;
                                 }
                             }
                         );
@@ -140,6 +148,7 @@ module.exports =
             },
             delete_content:function(req, res)
             {
+                var SELF = this;
                 ////
                 if( this.check_Jurisdiction(req, res) )
                 {
@@ -157,7 +166,7 @@ module.exports =
                                 if( checkDBError(res, error) )
                                 {
                                     protocal.send_ok(res);
-                                    this.CONTENT_ARRAY[UID] = null;
+                                    SELF.CONTENT_ARRAY[UID] = null;
                                 }
                             }
                         );
@@ -188,7 +197,7 @@ module.exports =
                     const data = req.body;
 
                     var check = false;
-                    if(   CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD)
+                    if(   CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold)
                         && CHECK_STRING_LIMIT(data.UID, COM_TRAND_UID_LENGTH) && data.UID.length == COM_TRAND_UID_LENGTH )
                     {
                         check = true;
@@ -203,7 +212,7 @@ module.exports =
                             function()
                             {
                                 SELF.COLLECTION_TRADE.update(where,
-                                    {$set:{name:data.name,type:data.type, info:data.info, GOLD:data.GOLD }},
+                                    {$set:{name:data.name,type:data.type, info:data.info, GOLD:data.GOLD, init_gold:data.init_gold }},
                                     function(error, result)
                                     {
                                         if( checkDBError(res, error) )
@@ -249,8 +258,53 @@ module.exports =
                 var account = req.__account;
                 var collection = req.__collection;
 
+                var data = req.body;
 
+                if( data && CHECK_STRING_LIMIT(data.content_id, COM_TRAND_UID_LENGTH) && data.content_id.length == COM_TRAND_UID_LENGTH )
+                {
+                    /////////
+                    if( account.content != null && account.content[data.content_id] )
+                    {
+                        protocal.send_error(res, protocal.error_code.error_content_already);
+                    }
+                    else
+                    {
+                        if( !account.content )
+                        {
+                            account.content = {};
+                        }
 
+                        const content_id = data.content_id;
+                        var content = account.content;
+
+                        var where = {UID:content_id};
+
+                        this.COLLECTION_TRADE.findOne(
+                            where,
+                            function(err,cursor)
+                            {
+                                if( checkDBError(res, err) )
+                                {
+                                    if (cursor == null) {
+                                        protocal.send_error(res, protocal.error_code.error_login_wrong_data);
+                                    }
+                                    else
+                                    {
+                                        content[content_id] = {UID:content_id, GOLD:cursor.init_gold, level:0};
+                                        collection.update({ID:account.ID},{$set:{content: content}});
+
+                                        protocal.send_ok(res, cursor);
+                                    }
+                                }
+                            }
+                        );
+                    }
+
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
             }
         };
 

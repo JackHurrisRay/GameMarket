@@ -35,21 +35,30 @@ module.exports =
                             {
                                 if( cursor == null )
                                 {
-                                    var _createTime = new Date();
+                                    var _createTime = (new Date()).getTime();
 
                                     var _account_ex =
                                     {
-                                        "Jurisdiction":0,
-                                        "content":[]
+                                        "Jurisdiction":0
                                     };
+
+                                    var _account_content = {};
+
+                                    var _UID = (Math.floor(_createTime)).toString()
+                                        + (Math.floor(Math.random() * 10)).toString()
+                                        + (Math.floor(Math.random() * 10)).toString()
+                                        + (Math.floor(Math.random() * 10)).toString();
 
                                     var _account_data =
                                     {
-                                        "ID":data.account_id,"PWD":data.account_pwd,"create_time":_createTime.getTime(),
+                                        "UID":_UID,
+                                        "ID":data.account_id,"PWD":data.account_pwd,"create_time":_createTime,
                                         "data":
                                         {
                                             "extern":_account_ex
-                                        }
+                                        },
+                                        "cookies":{},
+                                        "content":{}
                                     };
 
                                     _collection.insert(_account_data,
@@ -81,7 +90,7 @@ module.exports =
             {
                 var data = req.body;
                 const uid = data.account_id;
-                const hr_checkCookies = system.checkCookies(req, uid);
+                const hr_checkCookies = system.checkCookies(req);
 
                 if( hr_checkCookies == 1 )
                 {
@@ -102,7 +111,7 @@ module.exports =
                                 else
                                 {
                                     //account exist
-                                    system.login(req, res, uid, cursor);
+                                    system.login(req, res, cursor);
                                     protocal.send_ok(res, cursor.data);
                                 }
                             }
@@ -114,12 +123,12 @@ module.exports =
             {
                 var req_cookies = req.cookies;
                 var _cookies_uid = null;
-                if( req_cookies.uid )
+                if( req_cookies.account )
                 {
-                    _cookies_uid = req_cookies.uid.uid;
+                    _cookies_uid = req_cookies.account.uid;
                 }
 
-                if( _cookies_uid && system.checkCookies(req, _cookies_uid) == 1 )
+                if( _cookies_uid && system.checkCookies(req) == 1 )
                 {
                     system.clearCookie(res, _cookies_uid);
                     protocal.send_ok(res, null);

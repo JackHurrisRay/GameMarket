@@ -47,82 +47,95 @@ module.exports =
 
                     _func();
                 },
-                saveAccount:function(uid) {
+                saveCookies:function(uid) {
                     var account = this.ACCOUNTS[uid];
 
                     if (account)
                     {
-                        this.COLLECTION.update({ID:uid},account);
+                        this.COLLECTION.update({ID:uid},{$set:{cookies:account.cookies}},
+                            function(error,result)
+                            {
+                                return;
+                            }
+                        );
                     }
 
                 },
                 clearCookie:function(res, uid)
                 {
-                    this.ACCOUNTS[uid].cookie = null;
+                    this.ACCOUNTS[uid].cookies = null;
                     res.clearCookie();
                 },
-                setCookie:function(res, uid, account)
+                setCookie:function(res, account)
                 {
                     ////
-                    res.cookie("user",{uid:uid},{maxAge:600000, httpOnly:false});
+                    res.clearCookie();
 
+                    ////
                     var _cookieTime = new Date();
                     var _key =
                     {
-                        "uid":uid,
-                        "time":_cookieTime.getTime()
+                        "uid":account.UID,
+                        "id":account.ID,
+                        "time":Math.floor( _cookieTime.getTime() )
                     };
 
-                    account.cookie = _key;
+                    account.cookies = _key;
 
                     var _key_value = JSON.stringify(_key);
-                    var _secret_key = Secret.encode(Secret.TYPE.aes,uid + _ex_key, _key_value);
+                    var _secret_key = Secret.encode(Secret.TYPE.aes,account.UID + _ex_key, _key_value);
 
                     var _value = new Buffer(_secret_key);
                     _key_value = _value.toString('base64');
 
-                    res.cookie("uid",{uid:uid},{maxAge:600000, httpOnly:false});
-                    res.cookie("key",{key:_key_value},{maxAge:600000, httpOnly:false});
+                    res.cookie("account",{uid:account.UID, id:account.ID, key:_key_value},{maxAge:600000, httpOnly:false});
                 },
                 connected:function(req)
                 {
                     ////////
                     var req_cookies = req.cookies;
                     var _cookies_uid = null;
-                    if( req_cookies.uid )
+                    if( req_cookies && req_cookies.uid )
                     {
                         _cookies_uid = req_cookies.uid.uid;
                     }
 
                     ////////
-                    return this.checkCookies(req, _cookies_uid) == 1;
+                    if( _cookies_uid == null )
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        return this.checkCookies(req) == 1;
+                    }
                 },
-                checkCookies:function(req, uid)
+                checkCookies:function(req)
                 {
                     var _check = 0;
 
-                    const account = this.ACCOUNTS[uid];
+                    ////////
+                    var req_cookies = req.cookies;
+                    var _cookies_uid = null;
+                    var _cookies_id  = null;
+                    var _cookies_key = null;
 
-                    if( account )
+                    if( req_cookies && req_cookies.account )
                     {
-                        const _account_cookie = account.cookie;
-                        var req_cookies = req.cookies;
+                        _cookies_uid = req_cookies.account.uid;
+                        _cookies_key = req_cookies.account.key;
+                        _cookies_id  = req_cookies.account.id;
+                    }
 
-                        var _cookies_uid = null;
-                        var _cookies_key = null;
+                    if( _cookies_uid && _cookies_key && _cookies_id )
+                    {
+                        const uid = _cookies_uid;
+                        const account = this.ACCOUNTS[uid];
 
-                        if( req_cookies.uid )
+                        if( account )
                         {
-                            _cookies_uid = req_cookies.uid.uid;
-                        }
+                            const _account_cookie = account.cookies;
 
-                        if( req_cookies.key )
-                        {
-                            _cookies_key = req_cookies.key.key;
-                        }
-
-                        if( _cookies_uid  && _cookies_key && _cookies_uid == uid )
-                        {
                             //check the cookies
                             var _str_key = new Buffer(_cookies_key, 'base64').toString();
                             var _decode_key = Secret.decode(Secret.TYPE.aes, uid + _ex_key, _str_key);
@@ -143,7 +156,8 @@ module.exports =
 
                                 if(
                                     _account_cookie.uid == _key_data.uid
-                                    && _time_check[0] - _time_check[1] == 0
+                                    && _time_check[0] == _time_check[1]
+                                    && _account_cookie.id == _key_data.id
                                 )
                                 {
                                     ////////
@@ -160,12 +174,13 @@ module.exports =
 
                     return _check;
                 },
-                login:function(req, res, uid, account)
+                login:function(req, res, account_data)
                 {
                     var _result = 0;
 
                     ////
-                    this.ACCOUNTS[uid] = account;
+                    const uid = account_data.UID;
+                    this.ACCOUNTS[uid] = account_data;
 
                     if( !this.ACCOUNTS[uid].data )
                     {
@@ -178,8 +193,8 @@ module.exports =
                     {
                         case 0:
                         {
-                            this.setCookie(res, uid, this.ACCOUNTS[uid]);
-                            this.saveAccount(uid);
+                            this.setCookie(res, this.ACCOUNTS[uid]);
+                            this.saveCookies(uid);
                             break;
                         }
                         case 1:
