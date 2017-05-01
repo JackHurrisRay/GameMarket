@@ -52,7 +52,7 @@ module.exports =
 
                     if (account)
                     {
-                        this.COLLECTION.update({ID:uid},{$set:{cookies:account.cookies}},
+                        this.COLLECTION.update({UID:uid},{$set:{cookies:account.cookies}},
                             function(error,result)
                             {
                                 return;

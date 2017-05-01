@@ -111,7 +111,7 @@ module.exports =
                                 else
                                 {
                                     //account exist
-                                    system.login(req, res, cursor);
+                                    _sys.login(req, res, cursor);
                                     protocal.send_ok(res, cursor.data);
                                 }
                             }
