@@ -90,6 +90,13 @@ module.exports = function(app)
         }
     );
 
+    app.put('/trade/applicate_content',
+        function(req, res)
+        {
+            comtrade.applicate_content(req, res);
+        }
+    );
+
     ////
     var waitFor = system.waitFor;
 
@@ -113,8 +120,10 @@ module.exports = function(app)
         {
             const PORT = 1021;
             var server = app.listen(PORT, function(){
-                var host = server.address().address;
-                var port = server.address().port;
+                var address = server.address();
+
+                var host = address.address;
+                var port = address.port;
 
                 console.log('SERVER＿RUNNING: http://%s:%s', host, port);
             });

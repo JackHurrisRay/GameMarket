@@ -243,6 +243,14 @@ module.exports =
                     }
 
                 }
+            },
+            applicate_content:function(req, res)
+            {
+                var account = req.__account;
+                var collection = req.__collection;
+
+
+
             }
         };
 
