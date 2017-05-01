@@ -15,6 +15,7 @@ module.exports =
             _instance =
             {
                 SOCKET_POOL:[],
+                isInit:false,
                 addSocket:function(socket)
                 {
                     this.SOCKET_POOL.push(socket);
@@ -53,6 +54,7 @@ module.exports =
                 start:function()
                 {
                     console.log('TCP SERVER RUNNING');
+                    _instance.isInit = true;
                 },
                 connect:function(socket)
                 {

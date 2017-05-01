@@ -91,5 +91,34 @@ module.exports = function(app)
     );
 
     ////
-    tcpServer.run();
+    var waitFor = system.waitFor;
+
+    waitFor(
+        function()
+        {
+            return system.isDBConn() && comtrade.isInit;
+        },
+        function()
+        {
+            tcpServer.run();
+        }
+    );
+
+    waitFor(
+        function()
+        {
+            return tcpServer.isInit;
+        },
+        function()
+        {
+            const PORT = 1021;
+            var server = app.listen(PORT, function(){
+                var host = server.address().address;
+                var port = server.address().port;
+
+                console.log('SERVER＿RUNNING: http://%s:%s', host, port);
+            });
+        }
+    );
+
 }

@@ -3,7 +3,6 @@
  */
 
 var Secret = require('./secret');
-
 var dbSystem = require('./mongoDB');
 dbSystem.init();
 
@@ -24,6 +23,29 @@ module.exports =
                 isDBConn:function()
                 {
                     return dbSystem.isConn;
+                },
+                waitFor:function(condition, callback)
+                {
+                    var _func =
+                    function()
+                    {
+                        var _check = condition();
+                        var _callback = callback;
+
+                        if( _check )
+                        {
+                            callback();
+                        }
+                        else
+                        {
+                            setTimeout(
+                                _func,
+                                600
+                            );
+                        }
+                    };
+
+                    _func();
                 },
                 saveAccount:function(uid) {
                     var account = this.ACCOUNTS[uid];

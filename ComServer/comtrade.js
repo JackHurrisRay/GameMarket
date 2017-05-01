@@ -32,8 +32,10 @@ module.exports =
         {
             COLLECTION_TRADE:_db.collection('Content'),
             CONTENT_ARRAY:{},
+            isInit:false,
             init:function()
             {
+                var SELF = this;
                 var content_array = this.CONTENT_ARRAY;
                 var dataArray = [];
 
@@ -52,6 +54,7 @@ module.exports =
                                 if( dataArray.length == _cursor.cursorState.documents.length )
                                 {
                                     console.log('TRADE DATA INIT COMPLETED');
+                                    SELF.isInit = true;
                                 }
                             }
                         );
@@ -243,23 +246,16 @@ module.exports =
             }
         };
 
-        var conn =
+        _sys.waitFor(
             function()
             {
-                if( _sys.isDBConn() )
-                {
-                    _instance.init();
-                }
-                else
-                {
-                    setTimeout(
-                        conn,
-                        1000
-                    );
-                }
-            };
-
-        conn();
+                return _sys.isDBConn();
+            },
+            function()
+            {
+                _instance.init();
+            }
+        );
 
         return _instance;
     };
