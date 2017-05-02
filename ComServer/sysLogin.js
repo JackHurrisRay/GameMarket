@@ -139,6 +139,10 @@ module.exports =
                 }
 
             },
+            login_by_wechat:function(req, res)
+            {
+
+            }
         };
 
         return _instance;

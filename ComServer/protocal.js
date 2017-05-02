@@ -34,6 +34,8 @@ module.exports =
 
         //trade
         "error_content_already":221,
+        "error_content_notexist":222,
+        "error_costnotenough":230,
 
     },
     send_ok:function(res, data)

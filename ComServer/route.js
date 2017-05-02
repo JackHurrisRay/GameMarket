@@ -97,6 +97,13 @@ module.exports = function(app)
         }
     );
 
+    app.put('/trade/payfor_content',
+        function(req, res)
+        {
+            comtrade.payfor_content(req, res);
+        }
+    );
+
     ////
     var waitFor = system.waitFor;
 

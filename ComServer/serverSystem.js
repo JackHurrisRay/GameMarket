@@ -95,9 +95,9 @@ module.exports =
                     ////////
                     var req_cookies = req.cookies;
                     var _cookies_uid = null;
-                    if( req_cookies && req_cookies.uid )
+                    if( req_cookies && req_cookies.account )
                     {
-                        _cookies_uid = req_cookies.uid.uid;
+                        _cookies_uid = req_cookies.account.uid;
                     }
 
                     ////////

@@ -265,7 +265,9 @@ module.exports =
                     /////////
                     if( account.content != null && account.content[data.content_id] )
                     {
-                        protocal.send_error(res, protocal.error_code.error_content_already);
+                        var content = account.content[data.content_id];
+                        protocal.send_ok(res, content);
+                        //protocal.send_error(res, protocal.error_code.error_content_already);
                     }
                     else
                     {
@@ -291,9 +293,15 @@ module.exports =
                                     else
                                     {
                                         content[content_id] = {UID:content_id, GOLD:cursor.init_gold, level:0};
-                                        collection.update({ID:account.ID},{$set:{content: content}});
-
-                                        protocal.send_ok(res, cursor);
+                                        collection.update({ID:account.ID},{$set:{content: content}},
+                                            function(error, data)
+                                            {
+                                                if( checkDBError(error) )
+                                                {
+                                                    protocal.send_ok(res, content[content_id]);
+                                                }
+                                            }
+                                        );
                                     }
                                 }
                             }
@@ -305,7 +313,55 @@ module.exports =
                 {
                     protocal.send_error(res, protocal.error_code.error_wrongdata);
                 }
+            },
+            payfor_content:function(req, res)
+            {
+                var account = req.__account;
+                var collection = req.__collection;
+
+                var data = req.body;
+
+                ////////
+                if(
+                    data && CHECK_STRING_LIMIT(data.content_id, COM_TRAND_UID_LENGTH) && data.content_id.length == COM_TRAND_UID_LENGTH
+                    && CHECK_NUMBER(data.cost_gold) && data.cost_gold > 0
+                )
+                {
+                    ////////
+                    var content = account.content[data.content_id];
+
+                    if( content )
+                    {
+                        if( content.GOLD >= data.cost_gold )
+                        {
+                            content.GOLD = content.GOLD - data.cost_gold;
+
+                            collection.update({ID:account.ID},{$set:{content: account.content}},
+                                function(error, data)
+                                {
+                                    if( checkDBError(error) )
+                                    {
+                                        protocal.send_ok(res, content);
+                                    }
+                                }
+                            );
+                        }
+                        else
+                        {
+                            protocal.send_error(res, protocal.error_code.error_costnotenough);
+                        }
+                    }
+                    else
+                    {
+                        protocal.send_error(res, protocal.error_code.error_content_notexist);
+                    }
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
             }
+
         };
 
         _sys.waitFor(
