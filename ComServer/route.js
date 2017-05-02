@@ -21,6 +21,12 @@ module.exports = function(app)
     app.use(bodyParser.raw());
     app.use(cookie());
 
+    app.get('/', function(req, res)
+    {
+        res.send("Welcome To Jack.L's Server");
+    }
+    );
+
     //login
     app.post('/login/test', function(req,res)
     {
@@ -101,6 +107,15 @@ module.exports = function(app)
         function(req, res)
         {
             comtrade.payfor_content(req, res);
+        }
+    );
+
+    ////////
+    //get auth token
+    app.post('/auth',
+        function(req, res, next)
+        {
+
         }
     );
 
