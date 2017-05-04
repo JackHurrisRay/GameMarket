@@ -32,14 +32,6 @@ module.exports =
 
         try
         {
-            var options =
-            {
-                hostname:'http://wx.qlogo.cn',
-                port:80,
-                path:'/mmopen/deSkYvMWWCicGdNoG1aHjxaickShBlAPu1BvND8kZibWp0moL5TcyElsrVoLHgeB13hrPADR8FnHdTlvR5NRSERMQ2BnNEib6z8a/0',
-                method:'POST'
-            };
-
             http.get(
                 url,
                 function(res)

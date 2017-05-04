@@ -8,6 +8,7 @@ var https = require('https');
 var iconv = require("iconv-lite");
 
 var common = require('./common');
+var alioss = require('./alioss');
 
 ////////
 function sha1(str){
@@ -73,6 +74,9 @@ module.exports =
                         }
                         else
                         {
+                            ////
+                            alioss.upload('account_wx_img/test.jpeg', image);
+
                             res.writeHead('200',{'Content-Type':'image/jpeg'});
                             res.end(image, 'base64');
                         }
