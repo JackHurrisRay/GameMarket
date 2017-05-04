@@ -4,6 +4,10 @@
 var url = require("url");
 var crypto = require("crypto");
 var urlEncode = require('urlencode');
+var https = require('https');
+var iconv = require("iconv-lite");
+
+var common = require('./common');
 
 ////////
 function sha1(str){
@@ -42,6 +46,46 @@ module.exports =
     APP_ID:"wxaeae042027b2618f",
     APP_SECRET:'059473bbfe7b7a999163c68a21682d2e',
     CUR_URL:"http://m.huyukongjian.com/app",
+    WX_TOKEN:"",
+    WX_TOKEN_INVALID_TIME:0,
+    getImage:function(req, res)
+    {
+        var img_url = req.query.img;
+
+        if( img_url && common.checkURLInvalid(img_url) )
+        {
+            common.getImageFromURL(
+                img_url,
+                function(data, err)
+                {
+                    if( err )
+                    {
+                        res.send("Jack.L's error:" + err.message);
+                    }
+                    else
+                    {
+                        ////
+                        var image =  data;
+
+                        if( image == "" )
+                        {
+                            res.send("Jack.L's tell you there is nothing");
+                        }
+                        else
+                        {
+                            res.writeHead('200',{'Content-Type':'image/jpeg'});
+                            res.end(image, 'base64');
+                        }
+                    }
+
+                }
+            );
+        }
+        else
+        {
+            res.send('You must have correct IMG parament, my firend');
+        }
+    },
     validateToken:function(req, res)
     {
         var query = url.parse(req.url,true).query;
@@ -93,12 +137,30 @@ module.exports =
 
         return TOKEN_URL;
     },
+    getWXAccess_TokenURL:function(code)
+    {
+        const TOKEN_URL =
+            "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" + this.APP_ID +
+            "&secret=" + this.APP_SECRET +
+            "&code=" + code +
+            "&grant_type=authorization_code";
+
+        return TOKEN_URL;
+    },
+    getWXRefresh_Access_TokenURL:function()
+    {
+        const TOKEN_URL =
+            "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=" + this.APP_ID +
+            "&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
+
+        return TOKEN_URL;
+    },
     requestWXToken:function (callback)
     {
-        var wxHttp = require('https');
-        var iconv = require("iconv-lite");
+        var _wxHttp = https;
+        var _iconv  = iconv;
 
-        wxHttp.get(this.getWXTokenURL(),
+        _wxHttp.get(this.getWXTokenURL(),
             function( req, res )
             {
                 var datas = [];
@@ -121,7 +183,7 @@ module.exports =
                     function()
                     {
                         var buff = Buffer.concat(datas, size);
-                        var result = iconv.decode(buff, "utf8");//转码//var result = buff.toString();//不需要转编码,直接tostring
+                        var result = _iconv.decode(buff, "utf8");//转码//var result = buff.toString();//不需要转编码,直接tostring
 
                         console.log('wx token:' + result);
 
@@ -146,5 +208,104 @@ module.exports =
 
             }
         );
+    },
+    taskTokenRefresh:function()
+    {
+        var SELF = this;
+
+        var times = [];
+        for(var i=1; i<60; i++){
+            times.push(i);
+        }
+
+        var schedule = require('node-schedule');
+        var taskRule = new schedule.RecurrenceRule();
+        taskRule.second = times;
+        //taskRule.minute = 60;
+
+        var callback_refresh =
+            function( data, error )
+            {
+                if( error == null && data != null && data.access_token != null )
+                {
+                    ////////
+                    SELF.WX_TOKEN = data.access_token;
+                }
+                else
+                {
+
+                }
+            };
+
+        var task = schedule.scheduleJob(taskRule,
+            function()
+            {
+                const _currentTime = Math.floor((new Date()).getTime() * 0.001);
+
+                if( _currentTime - SELF.WX_TOKEN_INVALID_TIME > 3600 )
+                {
+                    SELF.WX_TOKEN_INVALID_TIME = _currentTime;
+                    console.log('Task refrsh Token from WX');
+                    SELF.requestWXToken(callback_refresh);
+                }
+            }
+        );
+    },
+    processCodeAndState:function(req, res)
+    {
+        var check = false;
+
+        var query = req.query;
+        if( query.code && query.state )
+        {
+            check = true;
+
+            ////////
+            var _wxHttp = https;
+            var _iconv  = iconv;
+
+            _wxHttp.get(this.getWXAccess_TokenURL(query.code),
+                function( req, res )
+                {
+                    var datas = [];
+                    var size = 0;
+
+                    req.on('data',
+                        function(data)
+                        {
+
+                            datas.push(data);
+                            size += data.length;
+                        }
+                    );
+
+                    req.on('end',
+                        function()
+                        {
+                            var buff = Buffer.concat(datas, size);
+                            var result = _iconv.decode(buff, "utf8");//转码//var result = buff.toString();//不需要转编码,直接tostring
+
+                            console.log('wx token:' + result);
+
+                        }
+                    );
+
+                    req.on('error',
+                        function(err)
+                        {
+                            console.log('wx error:' + err.message);
+
+                        }
+                    );
+
+                }
+            );
+
+            ////////
+            console.log('Step for veryfi code & state');
+            res.send("Jack.L's Verify");
+        }
+
+        return check;
     }
 };

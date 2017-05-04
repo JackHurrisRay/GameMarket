@@ -15,18 +15,32 @@ module.exports =
         webServer.use(bodyParser.json());
         webServer.use(bodyParser.raw());
         webServer.use(cookie());
+        webServer.use(bodyParser.urlencoded({extended:false}));
 
         webServer.get('/', function(req, res)
             {
                 var _ip = wxService.getClientIP(req);
                 console.log("client visit by " + _ip);
 
-                //res.send("Welcome To Jack.L's Server");
-                wxService.validateToken(req, res);
+                if( wxService.processCodeAndState(req, res) )
+                {
+
+                }
+                else
+                {
+                    wxService.validateToken(req, res);
+                }
             }
         );
 
-        wxService.requestWXToken(null);
+        webServer.post('./',
+            function(req, res)
+            {
+                res.end("Verify by Jack.L's Server");
+            }
+        );
+
+        wxService.taskTokenRefresh();
 
         ////////
         webServer.get('/auth',
@@ -41,6 +55,13 @@ module.exports =
             function(req, res)
             {
                 res.send("Hello, This is Jack.L's APP");
+            }
+        );
+
+        webServer.get('/image_test',
+            function(req, res)
+            {
+                wxService.getImage(req, res);
             }
         );
 
