@@ -138,12 +138,22 @@ module.exports =
                             const _account_cookie = account.cookies;
 
                             //check the cookies
-                            var _str_key = new Buffer(_cookies_key, 'base64').toString();
-                            var _decode_key = Secret.decode(Secret.TYPE.aes, uid + _ex_key, _str_key);
+                            var _str_key = null;
+                            var _decode_key = null;
+                            var _key_data = null;
 
-                            var _key_data = JSON.parse(_decode_key);
+                            try
+                            {
+                                _str_key = new Buffer(_cookies_key, 'base64').toString();
+                                _decode_key = Secret.decode(Secret.TYPE.aes, uid + _ex_key, _str_key);
+                                _key_data = JSON.parse(_decode_key);
+                            }
+                            catch (e)
+                            {
 
-                            if( !_account_cookie )
+                            }
+
+                            if( !_account_cookie || !_str_key  || !_decode_key || !_key_data )
                             {
 
                             }
