@@ -51,6 +51,21 @@ module.exports =
             }
         );
 
+        webServer.get('/redirect',
+            function(req, res)
+            {
+                var _cookies =
+                {
+                    "code":0,
+                    "data":"Jack's Test"
+                };
+
+                res.cookie("redirect",_cookies,{maxAge:600000, httpOnly:false});
+                res.writeHead(302,{'Location':"http://47.92.88.155:1021/"});
+                res.end();
+            }
+        );
+
         webServer.get('/app',
             function(req, res)
             {
