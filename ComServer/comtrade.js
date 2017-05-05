@@ -13,17 +13,36 @@ function CHECK_STRING_LIMIT(data, length)
         check = true;
     }
 
+    if( !check )
+    {
+        console.log("error check parament of CHECK_STRING_LIMIT:" + data);
+    }
+
     return check;
 }
 
 function CHECK_NUMBER(data)
 {
-    return data && typeof data == 'number';
+    var check = data && typeof data == 'number';
+
+    if( !check )
+    {
+        console.log("error check parament of CHECK_NUMBER:" + data);
+    }
+
+    return check;
 }
 
 function CHECK_OBJECT(data)
 {
-    return data && typeof data == 'object';
+    var check = data && typeof data == 'object';
+
+    if( !check )
+    {
+        console.log("error check parament of CHECK_OBJECT:" + data);
+    }
+
+    return check;
 }
 
 module.exports =

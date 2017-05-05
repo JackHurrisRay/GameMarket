@@ -77,7 +77,8 @@ module.exports =
                     {
                         "uid":account.UID,
                         "id":account.ID,
-                        "time":Math.floor( _cookieTime.getTime() )
+                        "time":Math.floor( _cookieTime.getTime() ),
+                        "type":Secret.LOGIN_TYPE.id_pwd
                     };
 
                     account.cookies = _key;

@@ -4,6 +4,12 @@
 
 var crypto = require('crypto');
 
+exports.LOGIN_TYPE =
+{
+    "id_pwd":0,
+    "wx":1,
+};
+
 exports.TYPE =
 {
     "aes":"aes-256-cbc",
