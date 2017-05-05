@@ -16,6 +16,7 @@ module.exports =
         "error_format":101,
         "error_wrongdata":102,
         "error_noaccount":103,
+        "error_nodata":104,
 
         "error_database":110,
         "error_notfinddata":111,

@@ -82,6 +82,13 @@ module.exports = function(app)
         }
     );
 
+    app.put('/trade/get_content',
+        function(req, res)
+        {
+            comtrade.get_content(req, res);
+        }
+    );
+
     app.put('/trade/get_all_content',
         function(req, res)
         {

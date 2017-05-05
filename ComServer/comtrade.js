@@ -99,7 +99,7 @@ module.exports =
                     const data = req.body;
 
                     var check = false;
-                    if(  CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold))
+                    if( data && CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold))
                     {
                         check = true;
                     }
@@ -154,7 +154,7 @@ module.exports =
                 {
                     const data = req.body;
 
-                    if( CHECK_STRING_LIMIT(data.UID, COM_TRAND_UID_LENGTH) && data.UID.length == COM_TRAND_UID_LENGTH  )
+                    if( data && CHECK_STRING_LIMIT(data.UID, COM_TRAND_UID_LENGTH) && data.UID.length == COM_TRAND_UID_LENGTH  )
                     {
                         const UID  = data.UID;
 
@@ -190,6 +190,29 @@ module.exports =
 
                 protocal.send_ok(res, _data);
             },
+            get_content:function(req, res)
+            {
+                var account = req.__account;
+                var collection = req.__collection;
+                const data = req.body;
+
+                if( data && CHECK_STRING_LIMIT(data.content_id, COM_TRAND_UID_LENGTH) )
+                {
+                    if( account.content && account.content[data.content_id] )
+                    {
+                        var content = account.content[data.content_id];
+                        protocal.send_ok(res, content);
+                    }
+                    else
+                    {
+                        protocal.send_error(res, protocal.error_code.error_nodata);
+                    }
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
+            },
             update_content:function(req,res)
             {
                 if( this.check_Jurisdiction(req, res) )
@@ -197,7 +220,7 @@ module.exports =
                     const data = req.body;
 
                     var check = false;
-                    if(   CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold)
+                    if( data && CHECK_STRING_LIMIT(data.name, 32) &&  CHECK_STRING_LIMIT(data.type, 16) &&  CHECK_STRING_LIMIT(data.info, 1024) && CHECK_OBJECT(data.GOLD) && CHECK_NUMBER(data.init_gold)
                         && CHECK_STRING_LIMIT(data.UID, COM_TRAND_UID_LENGTH) && data.UID.length == COM_TRAND_UID_LENGTH )
                     {
                         check = true;
@@ -250,7 +273,6 @@ module.exports =
                     {
                         protocal.send_error(res, protocal.error_code.error_wrongdata);
                     }
-
                 }
             },
             applicate_content:function(req, res)
@@ -267,7 +289,6 @@ module.exports =
                     {
                         var content = account.content[data.content_id];
                         protocal.send_ok(res, content);
-                        //protocal.send_error(res, protocal.error_code.error_content_already);
                     }
                     else
                     {
