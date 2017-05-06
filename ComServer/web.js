@@ -7,6 +7,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 
 var wxService = require('./wxService');
+var protocal = require('./protocal');
 
 ////////
 module.exports =
@@ -79,6 +80,13 @@ module.exports =
             function(req, res)
             {
                 wxService.getImage(req, res);
+            }
+        );
+
+        webServer.get('/error_code',
+            function(req, res)
+            {
+                protocal.send_ok(res, protocal.error_code);
             }
         );
 
