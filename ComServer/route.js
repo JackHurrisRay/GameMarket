@@ -21,6 +21,13 @@ module.exports = function(app)
     app.use(bodyParser.raw());
     app.use(cookie());
 
+    app.use(session(
+        {
+            secret:"Jack.L's Server",
+            cookie:{maxAge:600000,httpOnly: true}
+        }
+    ));
+
     app.get('/', function(req, res)
     {
         res.send("Welcome To Jack.L's Server");

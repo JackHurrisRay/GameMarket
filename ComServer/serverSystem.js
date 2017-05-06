@@ -66,7 +66,7 @@ module.exports =
                     this.ACCOUNTS[uid].cookies = null;
                     res.clearCookie();
                 },
-                setCookie:function(res, account)
+                setCookieAndSession:function(req, res, account)
                 {
                     ////
                     res.clearCookie();
@@ -89,7 +89,9 @@ module.exports =
                     var _value = new Buffer(_secret_key);
                     _key_value = _value.toString('base64');
 
-                    res.cookie("account",{uid:account.UID, id:account.ID, key:_key_value},{maxAge:600000, httpOnly:false});
+                    res.cookie("account",{uid:account.UID, key:_key_value},{maxAge:600000, httpOnly:true});
+
+                    req.session.APP_KEY = _key;
                 },
                 connected:function(req)
                 {
@@ -108,27 +110,37 @@ module.exports =
                     }
                     else
                     {
-                        return this.checkCookies(req) == 1;
+                        return this.checkCookiesAndSession(req) == 1;
                     }
                 },
-                checkCookies:function(req)
+                checkCookiesAndSession:function(req)
                 {
                     var _check = 0;
 
                     ////////
+                    var req_session = req.session;
                     var req_cookies = req.cookies;
-                    var _cookies_uid = null;
-                    var _cookies_id  = null;
-                    var _cookies_key = null;
 
-                    if( req_cookies && req_cookies.account )
+                    if( !req_cookies || !req_session )
                     {
-                        _cookies_uid = req_cookies.account.uid;
-                        _cookies_key = req_cookies.account.key;
-                        _cookies_id  = req_cookies.account.id;
+                        return 0;
                     }
 
-                    if( _cookies_uid && _cookies_key && _cookies_id )
+                    if( !req_cookies.account || !req_session.APP_KEY )
+                    {
+                        return 0;
+                    }
+
+                    var _cookies_uid = req_cookies.account.uid;
+                    var _cookies_key = req_cookies.account.key;
+                    var _session_data = req_session.APP_KEY;
+
+                    if( _cookies_uid != _session_data.uid )
+                    {
+                        return 0;
+                    }
+
+                    if( _cookies_uid && _cookies_key )
                     {
                         const uid = _cookies_uid;
                         const account = this.ACCOUNTS[uid];
@@ -199,12 +211,12 @@ module.exports =
                     }
 
                     ////
-                    const _hr = this.checkCookies(req,uid);
+                    const _hr = this.checkCookiesAndSession(req,uid);
                     switch(_hr)
                     {
                         case 0:
                         {
-                            this.setCookie(res, this.ACCOUNTS[uid]);
+                            this.setCookieAndSession(req, res, this.ACCOUNTS[uid]);
                             this.saveCookies(uid);
                             break;
                         }

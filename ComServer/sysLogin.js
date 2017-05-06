@@ -90,7 +90,7 @@ module.exports =
             {
                 var data = req.body;
                 const uid = data.account_id;
-                const hr_checkCookies = system.checkCookies(req);
+                const hr_checkCookies = system.checkCookiesAndSession(req);
 
                 if( hr_checkCookies == 1 )
                 {
@@ -128,7 +128,7 @@ module.exports =
                     _cookies_uid = req_cookies.account.uid;
                 }
 
-                if( _cookies_uid && system.checkCookies(req) == 1 )
+                if( _cookies_uid && system.checkCookiesAndSession(req) == 1 )
                 {
                     system.clearCookie(res, _cookies_uid);
                     protocal.send_ok(res, null);

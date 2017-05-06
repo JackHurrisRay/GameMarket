@@ -54,13 +54,15 @@ module.exports =
         webServer.get('/redirect',
             function(req, res)
             {
-                var _cookies =
+                var _data =
                 {
                     "code":0,
                     "data":"Jack's Test"
                 };
 
-                res.cookie("redirect",_cookies,{maxAge:600000, httpOnly:false});
+                req.APP_KEY = _data;
+
+                res.cookie("redirect",_data,{maxAge:600000, httpOnly:true});
                 res.writeHead(302,{'Location':"http://47.92.88.155:1021/"});
                 res.end();
             }
