@@ -2,7 +2,10 @@
  * Created by Jack.L on 2017/5/1.
  */
 
-var net     = require('net');
+
+var net = require('net');
+var base64 = require('./base64');
+var ComServerToGameServer = require('./ComServerToGameServer');
 
 module.exports =
     (
@@ -15,6 +18,7 @@ module.exports =
             _instance =
             {
                 SOCKET_POOL:[],
+                SOCKET_TO_GAME_SERVER:{},
                 isInit:false,
                 addSocket:function(socket)
                 {
@@ -96,7 +100,44 @@ module.exports =
                 },
                 data:function(socket, data)
                 {
-                    console.log('Recv:' + data.toString());
+                    //console.log('Recv:' + data.toString());
+
+                    var _resultData = null;
+
+                    try
+                    {
+                        var _resultString = data.toString('utf8');
+                        var _parseString = base64.transAscToStringArray( base64.decoder(_resultString) );
+
+                        _resultData = JSON.parse(_parseString);
+                    }
+                    catch(e)
+                    {
+                        //throw e;
+                    }
+
+                    if( _resultData )
+                    {
+                        //
+                        var _result = ComServerToGameServer.process_msg(_resultData, socket);
+
+                        if( _result )
+                        {
+                            var _strData = JSON.stringify(_result);
+                            var _msg = base64.encoder(_strData);
+                            this.send(socket, _msg);
+                        }
+                        else
+                        {
+                            socket.end();
+                        }
+                    }
+                    else
+                    {
+                        //
+                        console.log('Not save client, must be closed');
+                        socket.end();
+                    }
                 },
                 timeout:function(socket)
                 {
