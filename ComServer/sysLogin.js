@@ -118,6 +118,10 @@ module.exports =
                         });
 
                 }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
             },
             logout:function(req,res)
             {

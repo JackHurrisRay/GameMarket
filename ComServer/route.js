@@ -21,6 +21,23 @@ module.exports = function(app)
     app.use(bodyParser.raw());
     app.use(cookie());
 
+    app.all("*",
+        function(req, res, next)
+        {
+            ////////
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-HTTP-Method-Override, Accept");
+            res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+            res.header("Access-Control-Allow-Credentials", false);
+            //res.header("Content-Type", "application/json;charset=utf-8");
+            res.type("application/json");
+
+            res.statusCode = 200;
+
+            next();
+        }
+    );
+
     app.use(session(
         {
             secret:"Jack.L's Server",
