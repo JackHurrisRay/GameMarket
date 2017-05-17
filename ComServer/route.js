@@ -141,6 +141,13 @@ module.exports = function(app)
         }
     );
 
+    app.put('/trade/content_option',
+        function(req, res)
+        {
+            comtrade.content_option(req, res);
+        }
+    );
+
     ////////
     //get auth token
     app.post('/auth',

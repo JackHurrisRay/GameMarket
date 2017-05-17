@@ -400,7 +400,63 @@ module.exports =
                 {
                     protocal.send_error(res, protocal.error_code.error_wrongdata);
                 }
-            }
+            },
+            content_option:function(req, res)
+            {
+                ////////
+                var account = req.__account;
+                var collection = req.__collection;
+
+                var data = req.body;
+
+                if(
+                    data && CHECK_STRING_LIMIT(data.content_id, COM_TRAND_UID_LENGTH) && data.content_id.length == COM_TRAND_UID_LENGTH
+                    && typeof data.option_name == 'string'
+                )
+                {
+                    ////////
+                    var content = account.content[data.content_id];
+
+                    if( content )
+                    {
+                        ////////
+                        if( !content.options )
+                        {
+                            content.options = {};
+                        }
+
+                        ////////
+                        if( data.option_value || data.option_value == false || data.option_value == 0 )
+                        {
+                            content.options[data.option_name] = data.option_value;
+
+                            collection.update({ID:account.ID},{$set:{content: account.content}},
+                                function(error, result)
+                                {
+                                    if( checkDBError(error) )
+                                    {
+                                        protocal.send_ok(res, {"option_name":data.option_name, "option_value":data.option_value});
+                                    }
+                                }
+                            );
+                        }
+                        else
+                        {
+                            var _option_value = content.options[data.option_name];
+
+                            protocal.send_ok(res, {"option_name":data.option_name, "option_value":(_option_value | _option_value==false | _option_value==0)?_option_value:null});
+                        }
+                    }
+                    else
+                    {
+                        protocal.send_error(res, protocal.error_code.error_content_notexist);
+                    }
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
+            },
 
         };
 
