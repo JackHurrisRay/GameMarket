@@ -212,6 +212,9 @@ module.exports =
                 {
                     ////already login
                     //protocal.send_error(res, protocal.error_code.error_login_already_in);
+                    var account = req.__account;
+
+                    callback_success(req, res, account);
                 }
                 else if( uid && hr_checkCookies == 0)
                 {
@@ -244,7 +247,8 @@ module.exports =
                 {
                     protocal.send_error(res, protocal.error_code.error_wrongdata);
                 }
-            }
+            },
+
         };
 
         return _instance;

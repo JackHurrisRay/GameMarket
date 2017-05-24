@@ -287,10 +287,22 @@ module.exports =
                                     function()
                                     {
                                         sysLogin.login_by_wx(request, response, _open_id,
-                                            function(req, res, cursor)
+                                            function(req, res, accountdata)
                                             {
                                                 ////////
-                                                var _wx_data = cursor.wx_userinfo;
+                                                const _account = accountdata;
+
+                                                var _wx_data =
+                                                {
+                                                    UID:_account.UID,
+
+                                                    city:_account.wx_userinfo.city,
+                                                    province:_account.wx_userinfo.province,
+                                                    country:_account.wx_userinfo.country,
+                                                    niciname:_account.wx_userinfo.niciname,
+                                                    headimgurl:_account.wx_userinfo.headimgurl,
+                                                    sex:_account.wx_userinfo.sex
+                                                };
 
                                                 protocal.send_ok(res, _wx_data);
                                             }
