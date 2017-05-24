@@ -91,6 +91,11 @@ module.exports =
 
                     res.cookie("account",{uid:account.UID, key:_key_value},{maxAge:600000, httpOnly:true});
 
+                    if( !req.session )
+                    {
+                        req.session = {};
+                    }
+
                     req.session.APP_KEY = _key;
                 },
                 connected:function(req)

@@ -2,6 +2,7 @@
  * Created by Jack.L on 2017/4/29.
  */
 var protocal = require('./protocal');
+var BASE64 = require('./base64');
 
 module.exports =
     function(system)
@@ -143,9 +144,106 @@ module.exports =
                 }
 
             },
-            login_by_wechat:function(req, res)
+            regist_by_wx:function(res, openid, wx_userinfo, callback_success, callback_exist)
             {
+                var where = {"ID":openid};
 
+                _collection.findOne(where,
+                    function(error, cursor)
+                    {
+                        if( checkDBError(res, error))
+                        {
+                            if( cursor == null )
+                            {
+                                var _createTime = (new Date()).getTime();
+
+                                var _account_ex =
+                                {
+                                    "Jurisdiction":0
+                                };
+
+                                var _account_content = {};
+
+                                var _UID = (Math.floor(_createTime)).toString()
+                                    + (Math.floor(Math.random() * 10)).toString()
+                                    + (Math.floor(Math.random() * 10)).toString()
+                                    + (Math.floor(Math.random() * 10)).toString();
+
+                                var _pwd = BASE64.encoder(openid);
+
+                                var _account_data =
+                                {
+                                    "UID":_UID,
+                                    "ID":openid,"PWD":_pwd,"create_time":_createTime,
+                                    "data":
+                                    {
+                                        "extern":_account_ex
+                                    },
+                                    "wx_userinfo":wx_userinfo,
+                                    "cookies":{},
+                                    "content":{}
+                                };
+
+                                _collection.insert(_account_data,
+                                    function(error, result)
+                                    {
+                                        if( checkDBError(res, error) )
+                                        {
+                                            callback_success();
+                                        }
+                                    }
+                                );
+                            }
+                            else
+                            {
+                                ////data exist
+                                callback_exist();
+                            }
+                        }
+                    }
+                );
+            },
+            login_by_wx:function(req, res, openid, callback_success)
+            {
+                const uid = openid;
+                const hr_checkCookies = system.checkCookiesAndSession(req);
+
+                if( hr_checkCookies == 1 )
+                {
+                    ////already login
+                    //protocal.send_error(res, protocal.error_code.error_login_already_in);
+                }
+                else if( uid && hr_checkCookies == 0)
+                {
+                    var _pwd = BASE64.encoder(uid);
+                    var where = {"ID": uid, "PWD":_pwd};
+
+                    var _findCollection =
+                        _collection.findOne(where,
+                            function(error, cursor) {
+                                if (checkDBError(res, error)) {
+                                    if (cursor == null) {
+                                        protocal.send_error(res, protocal.error_code.error_login_wrong_data);
+                                    }
+                                    else
+                                    {
+                                        //account exist
+                                        _sys.login(req, res, cursor);
+                                        //protocal.send_ok(res, cursor.data);
+
+                                        if( callback_success )
+                                        {
+                                            callback_success(req, res, cursor);
+                                        }
+                                    }
+                                }
+                            });
+
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
             }
         };
 

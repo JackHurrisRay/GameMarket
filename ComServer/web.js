@@ -20,6 +20,7 @@ module.exports =
 
         webServer.get('/', function(req, res)
             {
+                /*
                 var _ip = wxService.getClientIP(req);
                 console.log("client visit by " + _ip);
 
@@ -31,6 +32,9 @@ module.exports =
                 {
                     wxService.validateToken(req, res);
                 }
+                */
+
+                res.end("Welcome to Jack.L's Server");
             }
         );
 
@@ -49,6 +53,13 @@ module.exports =
             {
                 res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
                 res.end();
+            }
+        );
+
+        webServer.get('/MP_verify_Rdd6b2FIu8V72Ser.txt',
+            function(req,res)
+            {
+                res.send('Rdd6b2FIu8V72Ser');
             }
         );
 
@@ -72,7 +83,12 @@ module.exports =
         webServer.get('/app',
             function(req, res)
             {
-                res.send("Hello, This is Jack.L's APP");
+                //res.send("Hello, This is Jack.L's APP");
+
+                var _ip = wxService.getClientIP(req);
+                console.log("client visit by " + _ip);
+
+                wxService.processCodeAndState(req, res)
             }
         );
 

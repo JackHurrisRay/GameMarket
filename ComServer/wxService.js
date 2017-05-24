@@ -4,11 +4,16 @@
 var url = require("url");
 var crypto = require("crypto");
 var urlEncode = require('urlencode');
-var https = require('https');
-var iconv = require("iconv-lite");
+var qs    = require("qs");
 
 var common = require('./common');
 var alioss = require('./alioss');
+var httpRequest = require('./HttpRequest');
+
+var system  = require('./serverSystem');
+var sysLogin = require('./sysLogin')(system);
+
+var protocal = require('./protocal');
 
 ////////
 function sha1(str){
@@ -46,7 +51,7 @@ module.exports =
     TOKEN_VALUE:getToken(),
     APP_ID:"wxaeae042027b2618f",
     APP_SECRET:'059473bbfe7b7a999163c68a21682d2e',
-    CUR_URL:"http://m.huyukongjian.com/app",
+    CUR_URL:"http://huyukongjian.cn/app",
     WX_TOKEN:"",
     WX_TOKEN_INVALID_TIME:0,
     getImage:function(req, res)
@@ -159,59 +164,44 @@ module.exports =
 
         return TOKEN_URL;
     },
+    getWXUserInfoURL:function(_openid, _access_token)
+    {
+        const _URL = "https://api.weixin.qq.com/sns/userinfo?";
+        const params =
+        {
+            access_token:_access_token,
+            openid:_openid,
+            lang:'zh_CN'
+        };
+
+        const options =
+        {
+            method:'get',
+            url:_URL + qs.stringify(params)
+        };
+
+        return options;
+    },
     requestWXToken:function (callback)
     {
-        var _wxHttp = https;
-        var _iconv  = iconv;
 
-        _wxHttp.get(this.getWXTokenURL(),
-            function( req, res )
+        httpRequest.https_get(this.getWXTokenURL(),
+            function(data)
             {
-                var datas = [];
-                var size = 0;
-
-                req.on('data',
-                    function(data)
-                    {
-                        if( callback )
-                        {
-                            callback(data, null);
-                        }
-
-                        datas.push(data);
-                        size += data.length;
-                    }
-                );
-
-                req.on('end',
-                    function()
-                    {
-                        var buff = Buffer.concat(datas, size);
-                        var result = _iconv.decode(buff, "utf8");//转码//var result = buff.toString();//不需要转编码,直接tostring
-
-                        console.log('wx token:' + result);
-
-                        if( callback )
-                        {
-                            callback(result, null);
-                        }
-                    }
-                );
-
-                req.on('error',
-                    function(err)
-                    {
-                        console.log('wx error:' + err.message);
-
-                        if( callback )
-                        {
-                            callback(null, err);
-                        }
-                    }
-                );
-
+                if( callback )
+                {
+                    callback(data, null);
+                }
+            },
+            function(error)
+            {
+                if( callback )
+                {
+                    callback(null, error);
+                }
             }
         );
+
     },
     taskTokenRefresh:function()
     {
@@ -257,59 +247,81 @@ module.exports =
     },
     processCodeAndState:function(req, res)
     {
-        var check = false;
+        var SELF  = this;
+
+        var request  = req;
+        var response = res;
 
         var query = req.query;
+
+        ////////
         if( query.code && query.state )
         {
-            check = true;
-
-            ////////
-            var _wxHttp = https;
-            var _iconv  = iconv;
-
-            _wxHttp.get(this.getWXAccess_TokenURL(query.code),
-                function( req, res )
+            httpRequest.https_get(this.getWXAccess_TokenURL(query.code),
+                function(data)
                 {
-                    var datas = [];
-                    var size = 0;
+                    var _resultObj = data;
 
-                    req.on('data',
-                        function(data)
-                        {
+                    if( _resultObj.errcode )
+                    {
+                        ////
+                        res.writeHead(302,{'Location':'/auth'});
+                        res.end();
+                    }
+                    else
+                    {
+                        ////success
+                        console.log('wx token:' + _resultObj.access_token);
+                        console.log('open id:' + _resultObj.openid);
 
-                            datas.push(data);
-                            size += data.length;
-                        }
-                    );
+                        const _requestURL = SELF.getWXUserInfoURL(_resultObj.openid, _resultObj.access_token);
+                        const _open_id = _resultObj.openid;
 
-                    req.on('end',
-                        function()
-                        {
-                            var buff = Buffer.concat(datas, size);
-                            var result = _iconv.decode(buff, "utf8");//转码//var result = buff.toString();//不需要转编码,直接tostring
+                        httpRequest.https_get(_requestURL.url,
+                            function(data)
+                            {
+                                //response.send("Welcome to Jack's APP");
 
-                            console.log('wx token:' + result);
+                                ////////
+                                var callback_login =
+                                    function()
+                                    {
+                                        sysLogin.login_by_wx(request, response, _open_id,
+                                            function(req, res, cursor)
+                                            {
+                                                ////////
+                                                var _wx_data = cursor.wx_userinfo;
 
-                        }
-                    );
+                                                protocal.send_ok(res, _wx_data);
+                                            }
+                                        );
+                                    };
 
-                    req.on('error',
-                        function(err)
-                        {
-                            console.log('wx error:' + err.message);
+                                sysLogin.regist_by_wx(response, _open_id, data,
+                                    callback_login,
+                                    callback_login
+                                );
 
-                        }
-                    );
+                            },
+                            function(error)
+                            {
+                                response.send("There is some error in Jack's Server");
+                            }
+                        );
+                    }
 
+                },
+                function(error)
+                {
+                    response.send("There is some error in Jack's Server");
                 }
             );
+        }
+        else
+        {
 
-            ////////
-            console.log('Step for veryfi code & state');
-            res.send("Jack.L's Verify");
         }
 
-        return check;
+
     }
 };
