@@ -292,19 +292,26 @@ module.exports =
                                                 ////////
                                                 const _account = accountdata;
 
-                                                var _wx_data =
+                                                const _wx_data =
                                                 {
                                                     UID:_account.UID,
 
                                                     city:_account.wx_userinfo.city,
                                                     province:_account.wx_userinfo.province,
                                                     country:_account.wx_userinfo.country,
-                                                    niciname:_account.wx_userinfo.niciname,
+                                                    nickname:_account.wx_userinfo.nickname,
                                                     headimgurl:_account.wx_userinfo.headimgurl,
                                                     sex:_account.wx_userinfo.sex
                                                 };
 
-                                                protocal.send_ok(res, _wx_data);
+                                                SELF.uploadImgToOSS(_wx_data.headimgurl, _wx_data.UID);
+
+                                                req.session.wx_data = _wx_data;
+
+                                                res.writeHead(302,{'Location':"/douniu"});
+                                                res.end();
+                                                //protocal.send_ok(res, _wx_data);
+
                                             }
                                         );
                                     };
@@ -335,5 +342,39 @@ module.exports =
         }
 
 
+    },
+    uploadImgToOSS:function(_img, _id)
+    {
+        var img_url = _img;
+
+        if( img_url && common.checkURLInvalid(img_url) )
+        {
+            common.getImageFromURL(
+                img_url,
+                function(data, err)
+                {
+                    if( err )
+                    {
+                        ////
+                    }
+                    else
+                    {
+                        ////
+                        var image =  data;
+
+                        if( image == "" )
+                        {
+                            ////
+                        }
+                        else
+                        {
+                            ////
+                            alioss.upload('account_wx_img/' + _id.toString(), image);
+                        }
+                    }
+
+                }
+            );
+        }
     }
 };

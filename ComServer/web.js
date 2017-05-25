@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 
 var wxService = require('./wxService');
 var protocal = require('./protocal');
+var httpRequest = require('./HttpRequest');
 
 ////////
 module.exports =
@@ -17,6 +18,12 @@ module.exports =
         webServer.use(bodyParser.raw());
         webServer.use(cookie());
         webServer.use(bodyParser.urlencoded({extended:false}));
+        webServer.use(session(
+            {
+                secret:"Welcome to Jack.L's WeChat Server",
+                cookie:{maxAge:60000}
+            }
+        ));
 
         webServer.get('/', function(req, res)
             {
@@ -103,6 +110,94 @@ module.exports =
             function(req, res)
             {
                 protocal.send_ok(res, protocal.error_code);
+            }
+        );
+
+        ////////
+        var _htmlDouNiu = null;
+        this.getDouNiuHtml =
+            function(callback_gethtml)
+            {
+                if( _htmlDouNiu == null )
+                {
+                    httpRequest.http_getCode(
+                        "http://app.huyukongjian.cn/douniu/game.html",
+                        function(html)
+                        {
+                            _htmlDouNiu = html;
+                            callback_gethtml(_htmlDouNiu);
+                        }
+                    );
+                }
+                else
+                {
+                    callback_gethtml(_htmlDouNiu);
+                }
+            };
+
+        webServer.get('/douniu_test',
+            function(req, res)
+            {
+                this.getDouNiuHtml(
+                    function(html)
+                    {
+                        var _resData = "<script>const wx_data = {ID:'1495616455785281',IMG:'',NICKNAME:'Jack'}</script>";
+                        _resData += html;
+
+                        res.end(_resData);
+                    }
+                );
+            }
+        );
+
+        webServer.get('/douniu',
+            function(req, res)
+            {
+                if(req.session && req.session.wx_data)
+                {
+                    const _wx_data = req.session.wx_data;
+
+                    this.getDouNiuHtml(
+                        function(html)
+                        {
+                            var _resData = "<script>const wx_data = {ID:'"+ _wx_data.UID + "',IMG:'',NICKNAME:'"+ _wx_data.nickname +"'}</script>";
+                            _resData += html;
+
+                            res.end(_resData);
+                        }
+                    );
+                }
+                else
+                {
+                    res.writeHead(302,{'Location':"/auth"});
+                    res.end();
+                }
+
+            }
+        );
+
+        ////////
+        var _htmlProjectJson = null;
+        webServer.get('/project.json',
+            function(req, res)
+            {
+                if( _htmlProjectJson == null )
+                {
+                    httpRequest.http_getCode(
+                        "http://app.huyukongjian.cn/douniu/project.json",
+                        function(html)
+                        {
+                            _htmlProjectJson = html;
+
+                            res.end(_htmlProjectJson);
+                        }
+                    );
+                }
+                else
+                {
+                    res.end(_htmlProjectJson);
+                }
+
             }
         );
 
