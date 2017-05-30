@@ -21,29 +21,30 @@ module.exports = function(app)
     app.use(bodyParser.raw());
     app.use(cookie());
 
-    app.all("*",
-        function(req, res, next)
-        {
-            ////////
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-HTTP-Method-Override, Accept");
-            res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-            res.header("Access-Control-Allow-Credentials", false);
-            //res.header("Content-Type", "application/json;charset=utf-8");
-            res.type("application/json");
-
-            res.statusCode = 200;
-
-            next();
-        }
-    );
-
     app.use(session(
         {
             secret:"Jack.L's Server",
             cookie:{maxAge:600000,httpOnly: true}
         }
     ));
+
+    app.all("*",
+        function(req, res, next)
+        {
+            ////////
+            res.header("Access-Control-Allow-Origin", req.headers.origin);
+            res.header("Access-Control-Allow-Headers", "Content-Type");
+            res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+            res.header("Access-Control-Allow-Credentials", true);
+            //res.header("Content-Type", "application/json;charset=utf-8");
+            //res.header("cache-control","no-cache");
+            //res.type("application/json");
+
+            //res.statusCode = 200;
+
+            next();
+        }
+    );
 
     app.get('/', function(req, res)
     {

@@ -204,6 +204,8 @@ module.exports =
                 },
                 login:function(req, res, account_data)
                 {
+                    var request  = req;
+                    var response = res;
                     var _result = 0;
 
                     ////
@@ -216,12 +218,12 @@ module.exports =
                     }
 
                     ////
-                    const _hr = this.checkCookiesAndSession(req,uid);
+                    const _hr = this.checkCookiesAndSession(req);
                     switch(_hr)
                     {
                         case 0:
                         {
-                            this.setCookieAndSession(req, res, this.ACCOUNTS[uid]);
+                            this.setCookieAndSession(request, response, this.ACCOUNTS[uid]);
                             this.saveCookies(uid);
                             break;
                         }

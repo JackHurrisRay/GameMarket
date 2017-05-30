@@ -295,13 +295,17 @@ module.exports =
                                                 const _wx_data =
                                                 {
                                                     UID:_account.UID,
+                                                    access_token: _resultObj.access_token,
 
                                                     city:_account.wx_userinfo.city,
                                                     province:_account.wx_userinfo.province,
                                                     country:_account.wx_userinfo.country,
                                                     nickname:_account.wx_userinfo.nickname,
                                                     headimgurl:_account.wx_userinfo.headimgurl,
-                                                    sex:_account.wx_userinfo.sex
+                                                    sex:_account.wx_userinfo.sex,
+
+                                                    ID:_account.ID,
+                                                    PWD:_account.PWD
                                                 };
 
                                                 SELF.uploadImgToOSS(_wx_data.headimgurl, _wx_data.UID);

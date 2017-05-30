@@ -9,6 +9,8 @@ var bodyParser = require('body-parser');
 var wxService = require('./wxService');
 var protocal = require('./protocal');
 var httpRequest = require('./HttpRequest');
+var system      = require('./serverSystem');
+var game        = require('./comtrade')(system);
 
 ////////
 module.exports =
@@ -113,6 +115,27 @@ module.exports =
             }
         );
 
+        webServer.use('/game',
+            function(req,res,next)
+            {
+                if( system.connected(req) == 1 )
+                {
+                    next();
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_notlogin);
+                }
+            }
+        );
+
+        webServer.put('/game/content_option',
+            function(req, res)
+            {
+                game.content_option(req, res);
+            }
+        );
+
         ////////
         var _htmlDouNiu = null;
         this.getDouNiuHtml =
@@ -141,7 +164,16 @@ module.exports =
                 this.getDouNiuHtml(
                     function(html)
                     {
-                        var _resData = "<script>const wx_data = {ID:'1495616455785281',IMG:'',NICKNAME:'Jack'}</script>";
+                        const _data =
+                        {
+                            "ID":"1495616455785281",
+                            "NICKNAME":"Jack Game",
+                            "login_id":"omkfuwEIzl7MrmHHdc0RK5Gsb9I0",
+                            "login_pwd":"b21rZnV3RUl6bDdNcm1ISGRjMFJLNUdzYjlJMA==",
+                            "sex":1
+                        };
+
+                        var _resData = "<script>const wx_data = " + JSON.stringify(_data) + ";</script>";
                         _resData += html;
 
                         res.end(_resData);
@@ -156,11 +188,19 @@ module.exports =
                 if(req.session && req.session.wx_data)
                 {
                     const _wx_data = req.session.wx_data;
+                    const _data =
+                    {
+                        "ID":_wx_data.UID,
+                        "NICKNAME":_wx_data.nickname,
+                        "login_id":_wx_data.ID,
+                        "login_pwd":_wx_data.PWD,
+                        "sex":_wx_data.sex
+                    };
 
                     this.getDouNiuHtml(
                         function(html)
                         {
-                            var _resData = "<script>const wx_data = {ID:'"+ _wx_data.UID + "',IMG:'',NICKNAME:'"+ _wx_data.nickname +"'}</script>";
+                            var _resData = "<script>const wx_data = " + JSON.stringify(_data) + ";</script>";
                             _resData += html;
 
                             res.end(_resData);
@@ -196,6 +236,31 @@ module.exports =
                 else
                 {
                     res.end(_htmlProjectJson);
+                }
+
+            }
+        );
+
+        ////////
+        var _htmlIconFav = null;
+        webServer.get('/favicon.ico',
+            function(req, res)
+            {
+                if( _htmlIconFav == null )
+                {
+                    httpRequest.http_getCode(
+                        "http://5941game.oss-cn-qingdao.aliyuncs.com/favicon.ico",
+                        function(data)
+                        {
+                            _htmlIconFav = data;
+
+                            res.end(_htmlIconFav);
+                        }
+                    );
+                }
+                else
+                {
+                    res.end(_htmlIconFav);
                 }
 
             }
