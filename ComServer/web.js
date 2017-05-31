@@ -82,6 +82,13 @@ module.exports =
             }
         );
 
+        webServer.get('/douniu/MP_verify_Rdd6b2FIu8V72Ser.txt',
+            function(req,res)
+            {
+                res.send('Rdd6b2FIu8V72Ser');
+            }
+        );
+
         webServer.get('/redirect',
             function(req, res)
             {
@@ -204,7 +211,8 @@ module.exports =
                         "NICKNAME":_wx_data.nickname,
                         "login_id":_wx_data.ID,
                         "login_pwd":_wx_data.PWD,
-                        "sex":_wx_data.sex
+                        "sex":_wx_data.sex,
+                        "ticket":wxService.signature(req)
                     };
 
                     this.getDouNiuHtml(

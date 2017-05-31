@@ -245,8 +245,8 @@ module.exports =
 
                             SELF.WX_TICKET = {};
                             SELF.WX_TICKET.jsapi_ticket = ticket_data.ticket;
-                            SELF.WX_TICKET.noncestr = "Jack.L's Signature_" + _rand_flag;
-                            SELF.WX_TICKET.timestamp = (new Date()).getTime();
+                            SELF.WX_TICKET.noncestr = "Jack.L's_Signature_" + _rand_flag;
+                            SELF.WX_TICKET.timestamp = Math.floor( (new Date()).getTime() / 1000).toString();
                             SELF.WX_TICKET.url = "http://huyukongjian.cn";
 
                             var _string1 =
@@ -259,6 +259,44 @@ module.exports =
                             sha1.update(_string1);
 
                             SELF.WX_signature =  sha1.digest('hex');
+
+                            SELF.signature =
+                                function(req)
+                                {
+                                    const _rand_flag = Math.floor( Math.random() * 123456).toString();
+
+                                    const WX_TICKET =
+                                    {
+                                        jsapi_ticket:SELF.WX_TICKET.jsapi_ticket,
+                                        noncestr:"Jack.L's_Signature_" + _rand_flag,
+                                        timestamp:Math.floor( (new Date()).getTime() / 1000).toString(),
+                                        url:"http://huyukongjian.cn/douniu"
+                                    };
+
+                                    var _string1 =
+                                        "jsapi_ticket="+WX_TICKET.jsapi_ticket+"&"+
+                                        "noncestr="+WX_TICKET.noncestr+"&"+
+                                        "timestamp="+WX_TICKET.timestamp+"&"+
+                                        "url="+WX_TICKET.url;
+
+                                    var sha1 = crypto.createHash('sha1');
+                                    sha1.update(_string1);
+
+                                    const _signature =  sha1.digest('hex');
+
+                                    ////////
+                                    const _config_data =
+                                    {
+                                        debug:false,
+                                        appId:SELF.APP_ID,
+                                        timestamp:WX_TICKET.timestamp,
+                                        nonceStr:WX_TICKET.noncestr,
+                                        signature:_signature,
+                                        jsApiList:["onMenuShareTimeline","onMenuShareAppMessage"]
+                                    };
+
+                                    return _config_data;
+                                };
 
                             return;
                         },
@@ -355,22 +393,35 @@ module.exports =
 
                                                 SELF.uploadImgToOSS(_wx_data.headimgurl, _wx_data.UID);
 
+                                                /*
                                                 _wx_data.WX_TICKET =
                                                 {
-                                                    debug:true,
+                                                    debug:false,
                                                     appid:SELF.APP_ID,
                                                     timestamp:SELF.WX_TICKET.timestamp,
                                                     nonceStr:SELF.WX_TICKET.noncestr,
                                                     signature:SELF.WX_signature,
                                                     jsApiList:["onMenuShareTimeline","onMenuShareAppMessage"]
                                                 };
+                                                */
 
                                                 req.session.wx_data = _wx_data;
 
 
                                                 ////////
-                                                res.writeHead(302,{'Location':_app_name});
-                                                res.end();
+                                                console.log('APP NAME:' + _app_name);
+
+                                                if( _app_name )
+                                                {
+                                                    res.writeHead(302,{'Location':_app_name});
+                                                    res.end();
+                                                }
+                                                else
+                                                {
+                                                    res.clearCookie();
+                                                    res.end("Jack.L's Server is Funny, you can refresh the PAGE ^_^");
+                                                }
+
                                                 //protocal.send_ok(res, _wx_data);
 
                                             }
