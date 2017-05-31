@@ -348,6 +348,17 @@ module.exports =
                         );
                     }
 
+                    ////////
+                    account.update_content =
+                        function()
+                        {
+                            collection.update({ID:this.ID},{$set:{content: this.content}},
+                                function(error, data)
+                                {
+                                }
+                            );
+                        };
+
                 }
                 else
                 {

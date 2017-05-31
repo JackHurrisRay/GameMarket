@@ -156,6 +156,13 @@ module.exports =
 
         return TOKEN_URL;
     },
+    getWXTicket:function(access_token)
+    {
+        const _URL =
+            "https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token=" + access_token + "&type=jsapi";
+
+        return _URL;
+    },
     getWXRefresh_Access_TokenURL:function()
     {
         const TOKEN_URL =
@@ -274,6 +281,7 @@ module.exports =
                         console.log('wx token:' + _resultObj.access_token);
                         console.log('open id:' + _resultObj.openid);
 
+                        const _app_name = req.session.APP_NAME;
                         const _requestURL = SELF.getWXUserInfoURL(_resultObj.openid, _resultObj.access_token);
                         const _open_id = _resultObj.openid;
 
@@ -292,7 +300,7 @@ module.exports =
                                                 ////////
                                                 const _account = accountdata;
 
-                                                const _wx_data =
+                                                var _wx_data =
                                                 {
                                                     UID:_account.UID,
                                                     access_token: _resultObj.access_token,
@@ -312,7 +320,21 @@ module.exports =
 
                                                 req.session.wx_data = _wx_data;
 
-                                                res.writeHead(302,{'Location':"/douniu"});
+                                                ////////
+                                                const _ticket_url = SELF.getWXTicket(_wx_data.access_token);
+                                                httpRequest.https_get(_ticket_url,
+                                                    function(ticket_data)
+                                                    {
+                                                        return;
+                                                    },
+                                                    function(ticket_error)
+                                                    {
+                                                        return;
+                                                    }
+                                                );
+
+                                                ////////
+                                                res.writeHead(302,{'Location':_app_name});
                                                 res.end();
                                                 //protocal.send_ok(res, _wx_data);
 

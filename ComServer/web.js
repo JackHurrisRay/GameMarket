@@ -65,6 +65,16 @@ module.exports =
             }
         );
 
+        webServer.get('/auth_douniu',
+            function(req, res)
+            {
+                req.session.APP_NAME = "/douniu";
+
+                res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
+                res.end();
+            }
+        );
+
         webServer.get('/MP_verify_Rdd6b2FIu8V72Ser.txt',
             function(req,res)
             {
@@ -185,7 +195,7 @@ module.exports =
         webServer.get('/douniu',
             function(req, res)
             {
-                if(req.session && req.session.wx_data)
+                if(req.session && req.session.wx_data && req.session.APP_NAME)
                 {
                     const _wx_data = req.session.wx_data;
                     const _data =
@@ -209,7 +219,7 @@ module.exports =
                 }
                 else
                 {
-                    res.writeHead(302,{'Location':"/auth"});
+                    res.writeHead(302,{'Location':"/auth_douniu"});
                     res.end();
                 }
 

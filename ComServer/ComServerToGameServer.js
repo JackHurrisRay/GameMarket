@@ -3,6 +3,7 @@
  */
 
 var common = require('./common');
+var system = require('./serverSystem');
 
 const ENUM_MSG_TYPE =
 {
@@ -37,11 +38,13 @@ const protocal_c2s =
     "MSG_C2S_REQUEST_GOLD":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_C2S_REQUEST_GOLD,
+        "content_id":0,
         "player_id":0
     },
     "MSG_C2S_COST_GOLD":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_C2S_COST_GOLD,
+        "content_id":0,
         "player_id":0,
         "player_diamond":0
     }
@@ -143,6 +146,24 @@ module.exports =
                                 else
                                 {
                                     var msg = common.extendDeep(protocal_s2c.MSG_S2C_REQUEST_GOLD);
+
+                                    if(recvData.content_id && recvData.player_id )
+                                    {
+                                        var socket_obj = this.SOCKET_POOL[recvData.content_id];
+                                        var account    = system.ACCOUNTS[recvData.player_id];
+                                        var content    = null;
+
+                                        if( account )
+                                        {
+                                            content = account.content[recvData.content_id];
+                                        }
+
+                                        if( socket_obj && account && content )
+                                        {
+                                            msg.player_diamond = content.GOLD;
+                                        }
+                                    }
+
                                     return msg;
                                 }
 
@@ -157,6 +178,39 @@ module.exports =
                                 else
                                 {
                                     var msg = common.extendDeep(protocal_s2c.MSG_S2C_COST_GOLD);
+                                    msg.status = -1;
+
+                                    if(recvData.content_id && recvData.player_id )
+                                    {
+                                        var socket_obj = this.SOCKET_POOL[recvData.content_id];
+                                        var account    = system.ACCOUNTS[recvData.player_id];
+                                        var content    = null;
+                                        const cost       = recvData.player_diamond;
+
+                                        if( account )
+                                        {
+                                            content = account.content[recvData.content_id];
+                                        }
+
+                                        if( socket_obj && account && content )
+                                        {
+                                            if( content.GOLD >= cost )
+                                            {
+                                                content.GOLD = content.GOLD - cost;
+
+                                                msg.player_diamond = content.GOLD;
+                                                msg.status = 0;
+
+                                                account.update_content();
+                                            }
+                                            else
+                                            {
+                                                msg.player_diamond = content.GOLD;
+                                                msg.status = 1;
+                                            }
+                                        }
+                                    }
+
                                     return msg;
                                 }
 
