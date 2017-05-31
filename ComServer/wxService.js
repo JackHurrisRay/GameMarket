@@ -5,6 +5,7 @@ var url = require("url");
 var crypto = require("crypto");
 var urlEncode = require('urlencode');
 var qs    = require("qs");
+var crypto = require("crypto");
 
 var common = require('./common');
 var alioss = require('./alioss');
@@ -159,7 +160,8 @@ module.exports =
     getWXTicket:function(access_token)
     {
         const _URL =
-            "https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token=" + access_token + "&type=jsapi";
+            //"https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token=" + access_token + "";
+            "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=" + access_token + "&type=jsapi";
 
         return _URL;
     },
@@ -231,6 +233,41 @@ module.exports =
                 {
                     ////////
                     SELF.WX_TOKEN = data.access_token;
+
+                    ////////
+                    const _ticket_url = SELF.getWXTicket(SELF.WX_TOKEN);
+                    httpRequest.https_get(_ticket_url,
+                        function(ticket_data)
+                        {
+                            console.log(JSON.stringify(ticket_data));
+
+                            const _rand_flag = Math.floor( Math.random() * 123456).toString();
+
+                            SELF.WX_TICKET = {};
+                            SELF.WX_TICKET.jsapi_ticket = ticket_data.ticket;
+                            SELF.WX_TICKET.noncestr = "Jack.L's Signature_" + _rand_flag;
+                            SELF.WX_TICKET.timestamp = (new Date()).getTime();
+                            SELF.WX_TICKET.url = "http://huyukongjian.cn";
+
+                            var _string1 =
+                                "jsapi_ticket="+SELF.WX_TICKET.jsapi_ticket+"&"+
+                                "noncestr="+SELF.WX_TICKET.noncestr+"&"+
+                                "timestamp="+SELF.WX_TICKET.timestamp+"&"+
+                                "url="+SELF.WX_TICKET.url;
+
+                            var sha1 = crypto.createHash('sha1');
+                            sha1.update(_string1);
+
+                            SELF.WX_signature =  sha1.digest('hex');
+
+                            return;
+                        },
+                        function(ticket_error)
+                        {
+                            return;
+                        }
+                    );
+
                 }
                 else
                 {
@@ -318,20 +355,18 @@ module.exports =
 
                                                 SELF.uploadImgToOSS(_wx_data.headimgurl, _wx_data.UID);
 
+                                                _wx_data.WX_TICKET =
+                                                {
+                                                    debug:true,
+                                                    appid:SELF.APP_ID,
+                                                    timestamp:SELF.WX_TICKET.timestamp,
+                                                    nonceStr:SELF.WX_TICKET.noncestr,
+                                                    signature:SELF.WX_signature,
+                                                    jsApiList:["onMenuShareTimeline","onMenuShareAppMessage"]
+                                                };
+
                                                 req.session.wx_data = _wx_data;
 
-                                                ////////
-                                                const _ticket_url = SELF.getWXTicket(_wx_data.access_token);
-                                                httpRequest.https_get(_ticket_url,
-                                                    function(ticket_data)
-                                                    {
-                                                        return;
-                                                    },
-                                                    function(ticket_error)
-                                                    {
-                                                        return;
-                                                    }
-                                                );
 
                                                 ////////
                                                 res.writeHead(302,{'Location':_app_name});
