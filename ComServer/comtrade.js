@@ -3,6 +3,7 @@
  */
 var protocal = require('./protocal');
 
+////////
 const COM_TRAND_UID_LENGTH = 16;
 
 function CHECK_STRING_LIMIT(data, length)
@@ -51,6 +52,9 @@ module.exports =
         var _sys = system;
         var _db  = system.getDB();
         var checkDBError = protocal.checkDBError;
+
+        var collection_account = _db.collection('Account');
+        var collection_transactions = _db.collection('Transactions');
 
         var _instance =
         {
@@ -336,7 +340,7 @@ module.exports =
                                         collection.update({ID:account.ID},{$set:{content: content}},
                                             function(error, data)
                                             {
-                                                if( checkDBError(error) )
+                                                if( checkDBError(res, error) )
                                                 {
                                                     protocal.send_ok(res, content[content_id]);
                                                 }
@@ -390,7 +394,7 @@ module.exports =
                             collection.update({ID:account.ID},{$set:{content: account.content}},
                                 function(error, data)
                                 {
-                                    if( checkDBError(error) )
+                                    if( checkDBError(res, error) )
                                     {
                                         protocal.send_ok(res, content);
                                     }
@@ -406,6 +410,70 @@ module.exports =
                     {
                         protocal.send_error(res, protocal.error_code.error_content_notexist);
                     }
+                }
+                else
+                {
+                    protocal.send_error(res, protocal.error_code.error_wrongdata);
+                }
+            },
+            recharge_content_by_admin:function(req, res)
+            {
+                if( !this.check_Jurisdiction(req, res) )
+                {
+                    return;
+                }
+
+                var account = req.__account;
+                var collection = req.__collection;
+
+                const data = req.body;
+
+                ////////
+                if(
+                    data && CHECK_STRING_LIMIT(data.content_id, COM_TRAND_UID_LENGTH) && data.content_id.length == COM_TRAND_UID_LENGTH
+                    && CHECK_NUMBER(data.gold_add) && data.gold_add > 0 && data.account_id
+                )
+                {
+                    ////////
+                    const where = {"UID":data.account_id};
+
+                    collection_account.findOne(where,
+                        function(error, cursor)
+                        {
+                            if( checkDBError(res, error) )
+                            {
+                                if( cursor != null && cursor.UID == data.account_id && cursor.content[data.content_id] )
+                                {
+                                    var contents = cursor.content;
+                                    var content = contents[data.content_id];
+
+                                    if( content.GOLD != null && content.GOLD != undefined )
+                                    {
+                                        content.GOLD += data.gold_add;
+
+                                        collection_account.update(where,{$set:{content: contents}},
+                                            function(error, data)
+                                            {
+                                                if( checkDBError(res, error) )
+                                                {
+                                                    protocal.send_ok(res, content);
+                                                }
+                                            }
+                                        );
+                                    }
+                                    else
+                                    {
+                                        protocal.send_error(res, protocal.error_code.error_notfinddata);
+                                    }
+
+                                }
+                                else
+                                {
+                                    protocal.send_error(res, protocal.error_code.error_notfinddata);
+                                }
+                            }
+                        }
+                    );
                 }
                 else
                 {
@@ -444,7 +512,7 @@ module.exports =
                             collection.update({ID:account.ID},{$set:{content: account.content}},
                                 function(error, result)
                                 {
-                                    if( checkDBError(error) )
+                                    if( checkDBError(res, error) )
                                     {
                                         protocal.send_ok(res, {"option_name":data.option_name, "option_value":data.option_value});
                                     }

@@ -89,6 +89,13 @@ module.exports =
                             SELF.delSocket(socket);
                         }
                     );
+
+                    socket.on('error',
+                        function(err)
+                        {
+                            console.log(err.message);
+                        }
+                    );
                 },
                 close:function(socket)
                 {

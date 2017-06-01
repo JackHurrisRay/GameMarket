@@ -3,7 +3,6 @@
  */
 
 var mongodb = require('mongodb');
-var comtrade = require('./comtrade');
 
 module.exports =
     (

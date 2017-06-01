@@ -8,6 +8,10 @@ var system = require('./serverSystem');
 const ENUM_MSG_TYPE =
 {
     ////
+    "ENUM_C2S_HEART":2010,
+    "ENUM_S2C_HEART":2015,
+
+    ////
     "ENUM_C2S_CONNECT":1000,
     "ENUM_C2S_REQUEST_GOLD":1001,
     "ENUM_C2S_COST_GOLD":1002,
@@ -29,6 +33,10 @@ const ENUM_COM_RESULT_STATUS =
 
 const protocal_c2s =
 {
+    "MSG_C2S_HEART":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_C2S_HEART,
+    },
     "MSG_C2S_CONNECT":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_C2S_CONNECT,
@@ -52,6 +60,10 @@ const protocal_c2s =
 
 const protocal_s2c =
 {
+    "MSG_S2C_HEART":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_S2C_HEART,
+    },
     "MSG_S2C_CONNECT":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_S2C_CONNECT,
@@ -133,6 +145,20 @@ module.exports =
                                 else
                                 {
                                     socket.end();
+                                }
+
+                                break;
+                            }
+                            case ENUM_MSG_TYPE.ENUM_C2S_HEART:
+                            {
+                                if( !this.check_msg_after_login(socket) )
+                                {
+                                    socket.end();
+                                }
+                                else
+                                {
+                                    var msg = common.extendDeep(protocal_s2c.MSG_S2C_HEART);
+                                    return msg;
                                 }
 
                                 break;

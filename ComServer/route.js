@@ -149,6 +149,13 @@ module.exports = function(app)
         }
     );
 
+    app.put('/trade/recharge_content_by_admin',
+        function(req, res)
+        {
+            comtrade.recharge_content_by_admin(req, res);
+        }
+    );
+
     ////////
     //get auth token
     app.post('/auth',
