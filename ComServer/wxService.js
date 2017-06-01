@@ -292,7 +292,19 @@ module.exports =
                                         timestamp:WX_TICKET.timestamp,
                                         nonceStr:WX_TICKET.noncestr,
                                         signature:_signature,
-                                        jsApiList:["onMenuShareTimeline","onMenuShareAppMessage"]
+                                        jsApiList:[
+                                            "onMenuShareTimeline",
+                                            "onMenuShareAppMessage",
+                                            'checkJsApi',
+                                            'hideMenuItems',
+                                            'showMenuItems',
+                                            'hideOptionMenu',
+                                            'showOptionMenu',
+                                            'hideAllNonBaseMenuItem',
+                                            'showAllNonBaseMenuItem',
+                                            'closeWindow',
+
+                                        ]
                                     };
 
                                     return _config_data;
