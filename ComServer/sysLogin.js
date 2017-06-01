@@ -102,7 +102,6 @@ module.exports =
                 {
                     var where = {"ID": data.account_id, "PWD":data.account_pwd};
 
-                    var _findCollection =
                     _collection.findOne(where,
                         function(error, cursor) {
                             if (checkDBError(res, error)) {

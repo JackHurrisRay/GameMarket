@@ -416,6 +416,26 @@ module.exports =
                     protocal.send_error(res, protocal.error_code.error_wrongdata);
                 }
             },
+            update_transactions:function(content_id, master_id, account_id, gold_value, info)
+            {
+                const transactions =
+                {
+                    transaction_time:new Date(),
+                    content_id:content_id,
+                    master_id:master_id,
+                    account_id:account_id,
+                    gold_value:gold_value,
+                    info:info
+                };
+
+                collection_transactions.insert(transactions,
+                    function(error, result)
+                    {
+                    }
+                );
+
+                return transactions;
+            },
             recharge_content_by_admin:function(req, res)
             {
                 if( !this.check_Jurisdiction(req, res) )
@@ -423,9 +443,8 @@ module.exports =
                     return;
                 }
 
-                var account = req.__account;
-                var collection = req.__collection;
-
+                const account = req.__account;
+                var SELF = this;
                 const data = req.body;
 
                 ////////
@@ -436,6 +455,7 @@ module.exports =
                 {
                     ////////
                     const where = {"UID":data.account_id};
+                    const add_gold = data.gold_add;
 
                     collection_account.findOne(where,
                         function(error, cursor)
@@ -449,14 +469,34 @@ module.exports =
 
                                     if( content.GOLD != null && content.GOLD != undefined )
                                     {
-                                        content.GOLD += data.gold_add;
+                                        const _old_gold_value = content.GOLD;
+                                        content.GOLD += add_gold;
 
                                         collection_account.update(where,{$set:{content: contents}},
-                                            function(error, data)
+                                            function(error, data_update)
                                             {
                                                 if( checkDBError(res, error) )
                                                 {
-                                                    protocal.send_ok(res, content);
+                                                    var _info = "Transaction by ";
+
+                                                    if( account.wx_data && account.wx_data.nickname )
+                                                    {
+                                                        _info += account.wx_data.nickname;
+                                                    }
+
+                                                    _info += "(ID:" + account.UID + "):  account ";
+
+                                                    if( cursor.wx_data && cursor.wx_data.nickname )
+                                                    {
+                                                        _info += cursor.wx_data.nickname;
+                                                    }
+
+                                                    _info += "(ID:" + cursor.UID + ") GOLD change ";
+                                                    _info += _old_gold_value.toString() + " -> " + content.GOLD.toString() + " (+" + add_gold.toString() + ")";
+
+                                                    const transaction_result = SELF.update_transactions(data.content_id, account.UID, data.account_id, add_gold, _info);
+
+                                                    protocal.send_ok(res, transaction_result);
                                                 }
                                             }
                                         );
