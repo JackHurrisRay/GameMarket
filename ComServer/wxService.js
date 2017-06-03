@@ -270,7 +270,7 @@ module.exports =
                                         jsapi_ticket:SELF.WX_TICKET.jsapi_ticket,
                                         noncestr:"Jack.L's_Signature_" + _rand_flag,
                                         timestamp:Math.floor( (new Date()).getTime() / 1000).toString(),
-                                        url:"http://huyukongjian.cn/douniu"
+                                        url:"http://huyukongjian.cn/gameapp"
                                     };
 
                                     var _string1 =
@@ -369,6 +369,8 @@ module.exports =
                         console.log('open id:' + _resultObj.openid);
 
                         const _app_name = req.session.APP_NAME;
+                        const _app_id   = req.session.APP_ID;
+
                         const _requestURL = SELF.getWXUserInfoURL(_resultObj.openid, _resultObj.access_token);
                         const _open_id = _resultObj.openid;
 
@@ -405,27 +407,14 @@ module.exports =
 
                                                 SELF.uploadImgToOSS(_wx_data.headimgurl, _wx_data.UID);
 
-                                                /*
-                                                _wx_data.WX_TICKET =
-                                                {
-                                                    debug:false,
-                                                    appid:SELF.APP_ID,
-                                                    timestamp:SELF.WX_TICKET.timestamp,
-                                                    nonceStr:SELF.WX_TICKET.noncestr,
-                                                    signature:SELF.WX_signature,
-                                                    jsApiList:["onMenuShareTimeline","onMenuShareAppMessage"]
-                                                };
-                                                */
-
                                                 req.session.wx_data = _wx_data;
 
-
                                                 ////////
-                                                console.log('APP NAME:' + _app_name);
+                                                console.log('APP NAME:' + _app_name +', APP ID:' + _app_id);
 
                                                 if( _app_name )
                                                 {
-                                                    res.writeHead(302,{'Location':_app_name});
+                                                    res.writeHead(302,{'Location':'gameapp'});
                                                     res.end();
                                                 }
                                                 else
@@ -433,9 +422,6 @@ module.exports =
                                                     res.clearCookie();
                                                     res.end("Jack.L's Server is Funny, you can refresh the PAGE ^_^");
                                                 }
-
-                                                //protocal.send_ok(res, _wx_data);
-
                                             }
                                         );
                                     };

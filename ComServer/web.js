@@ -29,20 +29,6 @@ module.exports =
 
         webServer.get('/', function(req, res)
             {
-                /*
-                var _ip = wxService.getClientIP(req);
-                console.log("client visit by " + _ip);
-
-                if( wxService.processCodeAndState(req, res) )
-                {
-
-                }
-                else
-                {
-                    wxService.validateToken(req, res);
-                }
-                */
-
                 res.end("Welcome to Jack.L's Server");
             }
         );
@@ -57,35 +43,45 @@ module.exports =
         wxService.taskTokenRefresh();
 
         ////////
+        const GAME_NAME =
+        {
+            "1":"/douniu"
+        };
+
         webServer.get('/auth',
             function(req, res)
             {
-                res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
-                res.end();
-            }
-        );
+                const game_id = req.query.game;
 
-        webServer.get('/auth_douniu',
-            function(req, res)
-            {
-                req.session.APP_NAME = "/douniu";
+                if( game_id )
+                {
+                    req.session.APP_NAME = GAME_NAME[game_id];
+                    req.session.APP_ID   = game_id;
+                }
 
                 res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
                 res.end();
             }
         );
 
-        webServer.get('/MP_verify_Rdd6b2FIu8V72Ser.txt',
+        ////////
+        const _wx_verify =
+        {
+            "path":"/MP_verify_Rdd6b2FIu8V72Ser.txt",
+            "info":"Rdd6b2FIu8V72Ser"
+        };
+
+        webServer.get(_wx_verify.path,
             function(req,res)
             {
-                res.send('Rdd6b2FIu8V72Ser');
+                res.send(_wx_verify.info);
             }
         );
 
-        webServer.get('/douniu/MP_verify_Rdd6b2FIu8V72Ser.txt',
+        webServer.get('/gameapp' + _wx_verify.path,
             function(req,res)
             {
-                res.send('Rdd6b2FIu8V72Ser');
+                res.send(_wx_verify.info);
             }
         );
 
@@ -109,8 +105,6 @@ module.exports =
         webServer.get('/app',
             function(req, res)
             {
-                //res.send("Hello, This is Jack.L's APP");
-
                 var _ip = wxService.getClientIP(req);
                 console.log("client visit by " + _ip);
 
@@ -199,7 +193,7 @@ module.exports =
             }
         );
 
-        webServer.get('/douniu',
+        webServer.get('/gameapp',
             function(req, res)
             {
                 if(req.session && req.session.wx_data && req.session.APP_NAME)
@@ -227,8 +221,17 @@ module.exports =
                 }
                 else
                 {
-                    res.writeHead(302,{'Location':"/auth_douniu"});
-                    res.end();
+                    const game_id = req.query.game;
+
+                    if( game_id )
+                    {
+                        res.writeHead(302,{'Location':'auth?game=' + game_id});
+                        res.end();
+                    }
+                    else
+                    {
+                        res.end('Sorry, You must relogin by WeChat!');
+                    }
                 }
 
             }
