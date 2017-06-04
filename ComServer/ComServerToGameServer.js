@@ -4,6 +4,7 @@
 
 var common = require('./common');
 var system = require('./serverSystem');
+var dbSys  = require('./mongoDB');
 
 const ENUM_MSG_TYPE =
 {
@@ -15,11 +16,13 @@ const ENUM_MSG_TYPE =
     "ENUM_C2S_CONNECT":1000,
     "ENUM_C2S_REQUEST_GOLD":1001,
     "ENUM_C2S_COST_GOLD":1002,
+    "ENUM_C2S_RESULT_RECORD":1010,
 
     ////
     "ENUM_S2C_CONNECT":2000,
     "ENUM_S2C_REQUEST_GOLD":2001,
-    "ENUM_S2C_COST_GOLD":2002
+    "ENUM_S2C_COST_GOLD":2002,
+    "ENUM_S2C_RESULT_RECORD":1011,
 };
 
 const ENUM_COM_RESULT_STATUS =
@@ -55,6 +58,11 @@ const protocal_c2s =
         "content_id":0,
         "player_id":0,
         "player_diamond":0
+    },
+    "MSG_C2S_RESULT_RECORD":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_C2S_RESULT_RECORD,
+        "result":""
     }
 };
 
@@ -83,11 +91,16 @@ const protocal_s2c =
         "player_id":0,
         "player_diamond":0
     },
+    "MSG_S2C_RESULT_RECORD":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_S2C_RESULT_RECORD,
+        "status":0
+    },
     "MSG_S2C_ERROR":
     {
         "protocal":0,
         "status":ENUM_COM_RESULT_STATUS.error_unknown
-    }
+    },
 };
 
 
@@ -96,6 +109,8 @@ module.exports =
     (
         function()
         {
+            var db = dbSys.getDB();
+
             var instance =
             {
                 SOCKET_POOL:{},
@@ -235,6 +250,66 @@ module.exports =
                                                 msg.status = 1;
                                             }
                                         }
+                                    }
+
+                                    return msg;
+                                }
+
+                                break;
+                            }
+                            case ENUM_MSG_TYPE.ENUM_C2S_RESULT_RECORD:
+                            {
+                                if( !this.check_msg_after_login(socket) )
+                                {
+                                    socket.end();
+                                }
+                                else
+                                {
+                                    ////////
+                                    var _object = null;
+                                    var msg = common.extendDeep(protocal_s2c.MSG_S2C_RESULT_RECORD);
+                                    msg.status = -1;
+
+                                    try
+                                    {
+                                        _object = JSON.parse(recvData.result)
+                                    }
+                                    catch (e)
+                                    {
+
+                                    }
+
+                                    if( _object && _object.player )
+                                    {
+                                        var _record_data = common.extendDeep(_object);
+                                        _record_data.record_time = new Date();
+
+                                        for( var _key in _object.player )
+                                        {
+                                            var _player = _object.player[_key];
+
+                                            var _collection = db.collection('GameResult');
+                                            const where = {"PLAYER_UID": _player["player_key"]};
+
+                                            _collection.findOne(where,
+                                                function(error, cursor)
+                                                {
+                                                    if( cursor == null )
+                                                    {
+                                                        var _insertData = common.extendDeep(where);
+                                                        _insertData["RECORD"] = [_record_data];
+                                                        _collection.insert( _insertData );
+                                                    }
+                                                    else
+                                                    {
+                                                        _collection.update(where, {$push:{"RECORD":_record_data}});
+                                                    }
+                                                }
+                                            );
+
+                                        }
+
+                                        msg.status = 0;
                                     }
 
                                     return msg;
