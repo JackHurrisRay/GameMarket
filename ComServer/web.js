@@ -1,16 +1,20 @@
 /**
  * Created by Jack.L on 2017/5/2.
  */
+
+var crypto = require("crypto");
 var express = require('express');
 var cookie  = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 
+var base64 = require('./base64');
 var wxService = require('./wxService');
 var protocal = require('./protocal');
 var httpRequest = require('./HttpRequest');
 var system      = require('./serverSystem');
 var game        = require('./comtrade')(system);
+
 
 ////////
 module.exports =
@@ -26,6 +30,24 @@ module.exports =
                 cookie:{maxAge:60000}
             }
         ));
+
+        webServer.all("*",
+            function(req, res, next)
+            {
+                ////////
+                res.header("Access-Control-Allow-Origin", req.headers.origin);
+                //res.header("Access-Control-Allow-Headers", "Content-Type");
+                //res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+                //res.header("Access-Control-Allow-Credentials", true);
+                //res.header("Content-Type", "application/json;charset=utf-8");
+                //res.header("cache-control","no-cache");
+                //res.type("application/json");
+
+                //res.statusCode = 200;
+
+                next();
+            }
+        );
 
         webServer.get('/', function(req, res)
             {
@@ -51,16 +73,37 @@ module.exports =
         webServer.get('/auth',
             function(req, res)
             {
-                const game_id = req.query.game;
+                var content = req.query.content;
 
-                if( game_id )
+                var content_obj = null;
+
+                try
                 {
-                    req.session.APP_NAME = GAME_NAME[game_id];
-                    req.session.APP_ID   = game_id;
+                    var _parseString = base64.transAscToStringArray( base64.decoder(content) );
+                    content_obj = JSON.parse(_parseString);
+                }
+                catch(e)
+                {
+
                 }
 
-                res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
-                res.end();
+                if( content_obj )
+                {
+                    req.SERVER_CONTENT_STRING = content;
+                    req.session.APP_ID = content_obj.game;
+                    req.session.APP_NAME = GAME_NAME[content_obj.game];
+                    req.session.ROOM_ID  = content_obj.room;
+
+                    const inviter_id = content_obj.inviter;
+                    req.session.INVITER_ID = inviter_id;
+
+                    res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
+                    res.end();
+                }
+                else
+                {
+                    res.end("You have no permition to visit Jack's Server");
+                }
             }
         );
 
@@ -184,7 +227,10 @@ module.exports =
                             "sex":1
                         };
 
-                        var _resData = "<script>const wx_data = " + JSON.stringify(_data) + ";</script>";
+                        const str1 = JSON.stringify(_data);
+                        const str2 = base64.encoder(str1);
+
+                        var _resData = "<script>const wx_content = '" + str2 + "';</script>";
                         _resData += html;
 
                         res.end(_resData);
@@ -206,26 +252,49 @@ module.exports =
                         "login_id":_wx_data.ID,
                         "login_pwd":_wx_data.PWD,
                         "sex":_wx_data.sex,
-                        "ticket":wxService.signature(req)
+                        "ticket":wxService.signature(req),
+                        "inviter":req.session.INVITER_ID
                     };
 
-                    this.getDouNiuHtml(
-                        function(html)
-                        {
-                            var _resData = "<script>const wx_data = " + JSON.stringify(_data) + ";</script>";
-                            _resData += html;
+                    const str1 = JSON.stringify(_data);
+                    const str2 = base64.encoder(str1);
 
-                            res.end(_resData);
+                    var _appContent =
+                    {
+                        "1":function()
+                        {
+                            this.getDouNiuHtml(
+                                function(html)
+                                {
+                                    var _resData = "<script>const wx_content = '" + str2 + "';</script>";
+                                    _resData += html;
+
+                                    res.end(_resData);
+
+                                    req.session.INVITER_ID = null;
+                                }
+                            );
                         }
-                    );
+                    };
+
+                    var _app = _appContent[req.session.APP_ID];
+
+                    if( _app )
+                    {
+                        _app();
+                    }
+                    else
+                    {
+                        res.end('Sorry, Jack has not found your APP');
+                    }
                 }
                 else
                 {
-                    const game_id = req.query.game;
+                    const server_content = req.query.content;
 
-                    if( game_id )
+                    if( server_content )
                     {
-                        res.writeHead(302,{'Location':'auth?game=' + game_id});
+                        res.writeHead(302,{'Location':'auth?content=' + server_content});
                         res.end();
                     }
                     else
