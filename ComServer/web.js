@@ -67,7 +67,8 @@ module.exports =
         ////////
         const GAME_NAME =
         {
-            "1":"/douniu"
+            "1":"/douniu",
+            "24":"/math24",
         };
 
         webServer.get('/auth',
@@ -192,6 +193,9 @@ module.exports =
 
         ////////
         var _htmlDouNiu = null;
+        var _htmlMath24 = null;
+
+        ////////
         this.getDouNiuHtml =
             function(callback_gethtml)
             {
@@ -212,6 +216,28 @@ module.exports =
                 }
             };
 
+        ////////
+        this.getMath24Html =
+            function(callback_gethtml)
+            {
+                if( _htmlMath24 == null )
+                {
+                    httpRequest.http_getCode(
+                        "http://app.huyukongjian.cn/math24/game.html",
+                        function(html)
+                        {
+                            _htmlMath24 = html;
+                            callback_gethtml(_htmlMath24);
+                        }
+                    );
+                }
+                else
+                {
+                    callback_gethtml(_htmlMath24);
+                }
+            };
+
+        ////////
         webServer.get('/douniu_test',
             function(req, res)
             {
@@ -264,6 +290,20 @@ module.exports =
                         "1":function()
                         {
                             this.getDouNiuHtml(
+                                function(html)
+                                {
+                                    var _resData = "<script>const wx_content = '" + str2 + "';</script>";
+                                    _resData += html;
+
+                                    res.end(_resData);
+
+                                    req.session.INVITER_ID = null;
+                                }
+                            );
+                        },
+                        "24":function()
+                        {
+                            this.getMath24Html(
                                 function(html)
                                 {
                                     var _resData = "<script>const wx_content = '" + str2 + "';</script>";
