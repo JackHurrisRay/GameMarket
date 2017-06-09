@@ -156,22 +156,15 @@ module.exports = function(app)
         }
     );
 
-    ////////
-    //get auth token
-    app.post('/auth',
-        function(req, res, next)
-        {
-
-        }
-    );
-
     ////
     var waitFor = system.waitFor;
 
     waitFor(
         function()
         {
-            return system.isDBConn() && comtrade.isInit;
+            return system.isDBConn()
+                && comtrade.isInit
+                ;
         },
         function()
         {
