@@ -9,6 +9,10 @@ var dbSys  = require('./mongoDB');
 const ENUM_MSG_TYPE =
 {
     ////
+    "ENUM_C2S_CHECK_LOGIN":2000,
+    "ENUM_S2C_CHECK_LOGIN":2001,
+
+    ////
     "ENUM_C2S_HEART":2010,
     "ENUM_S2C_HEART":2015,
 
@@ -39,6 +43,11 @@ const protocal_c2s =
     "MSG_C2S_HEART":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_C2S_HEART,
+    },
+    "MSG_C2S_CHECKLOGIN":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_C2S_CHECK_LOGIN,
+        "player_id":0
     },
     "MSG_C2S_CONNECT":
     {
@@ -71,6 +80,11 @@ const protocal_s2c =
     "MSG_S2C_HEART":
     {
         "protocal":ENUM_MSG_TYPE.ENUM_S2C_HEART,
+    },
+    "MSG_S2C_CHECKLOGIN":
+    {
+        "protocal":ENUM_MSG_TYPE.ENUM_S2C_CHECK_LOGIN,
+        "status":0
     },
     "MSG_S2C_CONNECT":
     {
@@ -114,6 +128,12 @@ module.exports =
             var instance =
             {
                 SOCKET_POOL:{},
+                PLAYERS_SESSION:{},
+                setPlayer:function(uid)
+                {
+                    this.PLAYERS_SESSION[uid] = {};
+                    this.PLAYERS_SESSION[uid].login_time = (new Date()).getTime();
+                },
                 check_msg_after_login:function(socket)
                 {
                     var check = false;
@@ -160,6 +180,46 @@ module.exports =
                                 else
                                 {
                                     socket.end();
+                                }
+
+                                break;
+                            }
+                            case ENUM_MSG_TYPE.ENUM_C2S_CHECK_LOGIN:
+                            {
+                                if( !this.check_msg_after_login(socket) )
+                                {
+                                    socket.end();
+                                }
+                                else
+                                {
+                                    var msg = common.extendDeep(protocal_s2c.MSG_S2C_CHECKLOGIN);
+                                    msg.status = 404;
+
+                                    const uid = recvData.player_id;
+
+                                    if( uid && this.PLAYERS_SESSION[uid] )
+                                    {
+                                        var player = this.PLAYERS_SESSION[uid];
+
+                                        if( player )
+                                        {
+                                            const current_time = (new Date()).getTime();
+                                            if( current_time - player.login_time < 5 )
+                                            {
+                                                msg.status = 0;
+                                            }
+                                            else
+                                            {
+                                                msg.status = 402;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            msg.status = 401;
+                                        }
+                                    }
+
+                                    return msg;
                                 }
 
                                 break;

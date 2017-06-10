@@ -46,10 +46,11 @@ module.exports = function(app)
         }
     );
 
-    app.get('/', function(req, res)
-    {
-        res.send("Welcome To Jack.L's Server");
-    }
+    app.get('/',
+        function(req, res)
+        {
+            res.send("Welcome To Jack.L's Server");
+        }
     );
 
     //login

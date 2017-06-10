@@ -15,6 +15,8 @@ var httpRequest = require('./HttpRequest');
 var system      = require('./serverSystem');
 var game        = require('./comtrade')(system);
 
+var cstgs       = require('./ComServerToGameServer');
+
 
 ////////
 module.exports =
@@ -319,9 +321,10 @@ module.exports =
 
                     var _app = _appContent[req.session.APP_ID];
 
-                    if( _app )
+                    if( _app && req.session.APP_KEY )
                     {
                         _app();
+                        cstgs.setPlayer(req.session.APP_KEY.uid);
                     }
                     else
                     {
