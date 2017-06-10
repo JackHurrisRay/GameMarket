@@ -2,7 +2,9 @@
  * Created by Jack.L on 2017/4/29.
  */
 var protocal = require('./protocal');
-var BASE64 = require('./base64');
+var BASE64   = require('./base64');
+
+var cstgs    = require('./ComServerToGameServer');
 
 module.exports =
     function(system)
@@ -97,6 +99,11 @@ module.exports =
                 {
                     ////already login
                     protocal.send_error(res, protocal.error_code.error_login_already_in);
+
+                    if( req.session && req.session.APP_KEY )
+                    {
+                        cstgs.setPlayer(req.session.APP_KEY.uid);
+                    }
                 }
                 else if( data.account_id != null && data.account_pwd && hr_checkCookies == 0)
                 {
@@ -113,6 +120,11 @@ module.exports =
                                     //account exist
                                     _sys.login(req, res, cursor);
                                     protocal.send_ok(res, cursor.data);
+
+                                    if( req.session && req.session.APP_KEY )
+                                    {
+                                        cstgs.setPlayer(req.session.APP_KEY.uid);
+                                    }
                                 }
                             }
                         });
