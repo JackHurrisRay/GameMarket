@@ -204,13 +204,16 @@ module.exports =
                                         if( player )
                                         {
                                             const current_time = (new Date()).getTime();
-                                            if( current_time - player.login_time < 5 )
+                                            const checktime    = current_time - player.login_time;
+
+                                            if( checktime < 5000 )
                                             {
                                                 msg.status = 0;
                                             }
                                             else
                                             {
                                                 msg.status = 402;
+                                                msg.timeout = checktime;
                                             }
                                         }
                                         else
