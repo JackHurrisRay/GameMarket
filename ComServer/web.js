@@ -72,7 +72,7 @@ module.exports =
             "1":"/douniu",
             "24":"/math24",
         };
-
+        
         webServer.get('/auth',
             function(req, res)
             {
