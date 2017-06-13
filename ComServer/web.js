@@ -98,7 +98,8 @@ module.exports =
                     req.session.ROOM_ID  = content_obj.room;
 
                     const inviter_id = content_obj.inviter;
-                    req.session.INVITER_ID = inviter_id;
+                    req.session.INVITER_ID   = inviter_id;
+                    req.session.INVITER_DATE = content_obj.inviter_datecheck;
 
                     res.writeHead(302,{'Location':wxService.getWXAPPUrl()});
                     res.end();
@@ -281,7 +282,8 @@ module.exports =
                         "login_pwd":_wx_data.PWD,
                         "sex":_wx_data.sex,
                         "ticket":wxService.signature(req),
-                        "inviter":req.session.INVITER_ID
+                        "inviter":req.session.INVITER_ID,
+                        "inviter_datecheck":req.session.INVITER_DATE
                     };
 
                     const str1 = JSON.stringify(_data);
