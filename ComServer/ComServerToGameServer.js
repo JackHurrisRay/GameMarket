@@ -208,7 +208,7 @@ module.exports =
 
                                             if( checktime < 5000 )
                                             {
-                                                msg.status = 0;
+                                                msg.status  = 0;
                                             }
                                             else
                                             {

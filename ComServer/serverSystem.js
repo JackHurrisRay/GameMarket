@@ -24,6 +24,11 @@ module.exports =
                 {
                     return dbSystem.isConn;
                 },
+                getAccount:function(UID)
+                {
+                    var _selectAccount = this.ACCOUNTS[UID];
+                    return _selectAccount;
+                },
                 waitFor:function(condition, callback)
                 {
                     var _func =
@@ -34,7 +39,7 @@ module.exports =
 
                         if( _check )
                         {
-                            callback();
+                            _callback();
                         }
                         else
                         {
