@@ -19,13 +19,8 @@ module.exports =
                     var DBServer = mongodb.Server;
                     var DataBase = mongodb.Db;
 
-                    //const db_url = 'mongodb://root:Lei_Wei_1981@dds-2ze3e550ea9d5b742.mongodb.rds.aliyuncs.com:3717/database?authMechanism=MONGODB-CR&authSource=ComServerDB';
-                    //const  db_url = 'mongodb://root:Lei_Wei_1981@dds-2ze3e550ea9d5b741.mongodb.rds.aliyuncs.com:3717/admin?replicaSet=mgset-3986339';
-
                     this.Server =
-                        new DBServer('localhost', 1937, {auto_reconnect:true});
-                        //new DBServer('dds-2ze3e550ea9d5b742.mongodb.rds.aliyuncs.com', 3717, {auto_reconnect:true});
-                        //mongodb.MongoClient;
+                        new DBServer('localhost', 1937, {auto_reconnect:true, 'connect-timeout':60000, 'max-wait-time':60000});
 
                     this.Db = new DataBase('ComData', this.Server);
 
@@ -49,14 +44,6 @@ module.exports =
                             {
                                 console.log('MongoDB failed :' + err.message);
 
-                                setTimeout(
-                                    function()
-                                    {
-                                        console.log('restart the MongoDB...');
-                                        SELF.init();
-                                    },
-                                    1000
-                                );
                             }
                         }
                     );
