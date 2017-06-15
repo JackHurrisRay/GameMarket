@@ -2,19 +2,19 @@
  * Created by Jack.L on 2017/5/2.
  */
 
-var crypto = require("crypto");
+//var crypto = require("crypto");
 var express = require('express');
 var cookie  = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 
 var base64 = require('./base64');
+var config    = require('./config');
 var wxService = require('./wxService');
 var protocal = require('./protocal');
 var httpRequest = require('./HttpRequest');
 var system      = require('./serverSystem');
 var game        = require('./comtrade')(system);
-
 var cstgs       = require('./ComServerToGameServer');
 
 
@@ -38,14 +38,6 @@ module.exports =
             {
                 ////////
                 res.header("Access-Control-Allow-Origin", req.headers.origin);
-                //res.header("Access-Control-Allow-Headers", "Content-Type");
-                //res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-                //res.header("Access-Control-Allow-Credentials", true);
-                //res.header("Content-Type", "application/json;charset=utf-8");
-                //res.header("cache-control","no-cache");
-                //res.type("application/json");
-
-                //res.statusCode = 200;
 
                 next();
             }
@@ -57,21 +49,17 @@ module.exports =
             }
         );
 
-        webServer.post('./',
+        webServer.post('/',
             function(req, res)
             {
-                res.end("Verify by Jack.L's Server");
+                wxService.serviceForWXServer(req, res);
             }
         );
 
         wxService.taskTokenRefresh();
 
         ////////
-        const GAME_NAME =
-        {
-            "1":"/douniu",
-            "24":"/math24",
-        };
+        const APP = config.APP_INFO;
 
         webServer.get('/auth',
             function(req, res)
@@ -94,7 +82,7 @@ module.exports =
                 {
                     req.SERVER_CONTENT_STRING = content;
                     req.session.APP_ID = content_obj.game;
-                    req.session.APP_NAME = GAME_NAME[content_obj.game];
+                    req.session.APP_NAME = APP[content_obj.game].path;
                     req.session.ROOM_ID  = content_obj.room;
 
                     const inviter_id = content_obj.inviter;
@@ -148,6 +136,9 @@ module.exports =
                 res.end();
             }
         );
+
+        ////////
+
 
         webServer.get('/app',
             function(req, res)
@@ -268,7 +259,8 @@ module.exports =
             }
         );
 
-        webServer.get('/gameapp',
+        ////////
+        var callback_gameapp =
             function(req, res)
             {
                 if(req.session && req.session.wx_data && req.session.APP_NAME)
@@ -289,39 +281,27 @@ module.exports =
                     const str1 = JSON.stringify(_data);
                     const str2 = base64.encoder(str1);
 
-                    var _appContent =
+                    ////////
+                    var _app = null;
+                    const app_id = req.session.APP_ID;
+
+                    if( config.APP_INFO[app_id] )
                     {
-                        "1":function()
-                        {
-                            this.getDouNiuHtml(
-                                function(html)
-                                {
-                                    var _resData = "<script>const wx_content = '" + str2 + "';</script>";
-                                    _resData += html;
+                        _app =
+                            function()
+                            {
+                                config.APP_INFO.getClientHTML(app_id,
+                                    function(html)
+                                    {
+                                        var _resData = "<script>const wx_content = '" + str2 + "';</script>";
+                                        _resData += html;
 
-                                    res.end(_resData);
-
-                                    req.session.INVITER_ID = null;
-                                }
-                            );
-                        },
-                        "24":function()
-                        {
-                            this.getMath24Html(
-                                function(html)
-                                {
-                                    var _resData = "<script>const wx_content = '" + str2 + "';</script>";
-                                    _resData += html;
-
-                                    res.end(_resData);
-
-                                    req.session.INVITER_ID = null;
-                                }
-                            );
-                        }
-                    };
-
-                    var _app = _appContent[req.session.APP_ID];
+                                        res.end(_resData);
+                                        req.session.INVITER_ID = null;
+                                    }
+                                );
+                            };
+                    }
 
                     if( _app && req.session.APP_KEY )
                     {
@@ -348,7 +328,10 @@ module.exports =
                     }
                 }
 
-            }
+            };
+
+        webServer.get('/gameapp',
+            callback_gameapp
         );
 
         ////////

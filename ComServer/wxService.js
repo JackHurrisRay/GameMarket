@@ -1,11 +1,11 @@
 /**
  * Created by Jack.L on 2017/5/4.
  */
-var url = require("url");
-var crypto = require("crypto");
+var url = require('url');
+var crypto = require('crypto');
 var urlEncode = require('urlencode');
-var qs    = require("qs");
-var crypto = require("crypto");
+var qs        = require('qs');
+var xml2js    = require('xml2js')
 
 var common = require('./common');
 var alioss = require('./alioss');
@@ -15,6 +15,8 @@ var system  = require('./serverSystem');
 var sysLogin = require('./sysLogin')(system);
 
 var protocal = require('./protocal');
+var config   = require('./config');
+var base64   = require('./base64');
 
 ////////
 function sha1(str){
@@ -44,17 +46,38 @@ function getToken()
     }
 
     return _result;
-
 };
 
 module.exports =
 {
     TOKEN_VALUE:getToken(),
-    APP_ID:"wxaeae042027b2618f",
-    APP_SECRET:'059473bbfe7b7a999163c68a21682d2e',
+    APP_ID:config.WX_CONFIG.APP_ID,
+    APP_SECRET:config.WX_CONFIG.APP_SECRET,
     CUR_URL:"http://huyukongjian.cn/app",
     WX_TOKEN:"",
     WX_TOKEN_INVALID_TIME:0,
+    WX_SYS:null,
+    buildXML:function(dataArray)
+        {
+            var _result = "<xml>";
+
+            for( var key in dataArray )
+            {
+                const _data = dataArray[key];
+
+                if( typeof _data == "string" )
+                {
+                    _result += "<" + key + "><![CDATA[" + dataArray[key].toString() + "]]></" + key + ">";
+                }
+                else
+                {
+                    _result += "<" + key + ">" + dataArray[key].toString() + "</" + key + ">";
+                }
+            }
+
+            _result += "</xml>"
+            return _result;
+        },
     getImage:function(req, res)
     {
         var img_url = req.query.img;
@@ -191,9 +214,36 @@ module.exports =
 
         return options;
     },
+    getWXMenuURL:function()
+    {
+        const _URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token="+this.WX_TOKEN;
+        return _URL;
+    },
+    requestWXMenu:function()
+    {
+        var SELF    = this;
+        const URL   = this.getWXMenuURL();
+        const _menu = config.WX_MENU;
+
+        httpRequest.https_request_url(URL,_menu,
+            function(data)
+            {
+                console.log('WX MENU RECV:' + data);
+                var object = JSON.parse(data);
+
+                return;
+            },
+            function(error)
+            {
+                console.log('WX MENU RECV:' + error);
+
+                return;
+            }
+        );
+
+    },
     requestWXToken:function (callback)
     {
-
         httpRequest.https_get(this.getWXTokenURL(),
             function(data)
             {
@@ -231,8 +281,17 @@ module.exports =
             {
                 if( error == null && data != null && data.access_token != null )
                 {
+                    console.log("token value:" + data.access_token);
+
                     ////////
                     SELF.WX_TOKEN = data.access_token;
+                    setTimeout(
+                        function()
+                        {
+                            SELF.requestWXMenu();
+                        },
+                        1000
+                    );
 
                     ////////
                     const _ticket_url = SELF.getWXTicket(SELF.WX_TOKEN);
@@ -486,5 +545,45 @@ module.exports =
                 }
             );
         }
+    },
+    serviceForWXServer:function( req, res )
+    {
+        const SELF   = this;
+        const _query = req.query;
+
+        var _check = false;
+
+        if( _query.encrypt_type == 'aes' && _query.msg_signature && _query.signature && _query.timestamp )
+        {
+            const check_time = (new Date()).getTime() / 1000 - _query.timestamp;
+
+            if( check_time > 0 && check_time < 5 )
+            {
+                _check = true;
+            }
+        }
+
+        if( _check )
+        {
+            const _requestInfo =
+            {
+                ToUserName:_query.openid,
+                FromUserName:"huyukongjian",
+                CreateTime:Math.floor((new Date()).getTime() / 1000),
+                MsgType:'text',
+                Content:'您好，互娱空间正在建设中，敬请期待哟，不过首先呢，请试试我们的产品吧'
+            };
+
+            xmlStr = this.buildXML(_requestInfo);
+
+            res.end(xmlStr);
+
+            return;
+        }
+        else
+        {
+            res.end("Verify by Jack.L's Server");
+        }
     }
+
 };

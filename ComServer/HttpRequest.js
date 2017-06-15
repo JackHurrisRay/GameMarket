@@ -2,12 +2,63 @@
  * Created by Jack.L on 2017/5/24.
  */
 
-var https = require('https');
-var http  = require('http');
-var iconv = require("iconv-lite");
+var https  = require('https');
+var iconv  = require('iconv-lite');
+var urlSys = require('url');
 
 module.exports =
 {
+    https_request_url:function(url, data, callback_success, callback_error)
+    {
+        const _data    = JSON.stringify(data);
+        const postdata = new Buffer(_data, 'utf8');
+
+        ////////
+        var options  = urlSys.parse(url);
+        options.port = 443;
+        options.method = 'POST';
+
+        options.headers =
+        {
+            'Content-Type': 'application/json; encoding=utf-8',
+            'Content-Length':postdata.length
+        };
+
+        this.https_request(options, postdata, callback_success, callback_error);
+
+    },
+    https_request:function(ops, postdata, callback_success, callback_error)
+    {
+        var _http = https;
+
+        var req = _http.request(ops,
+            function(res)
+            {
+                res.on('data',
+                    function(data)
+                    {
+                        if( callback_success )
+                        {
+                            callback_success(data);
+                        }
+                    }
+                );
+            }
+        );
+
+        req.on('error',
+            function(error)
+            {
+                if( callback_error )
+                {
+                    callback_error(error);
+                }
+            }
+        );
+
+        req.write(postdata);
+        req.end();
+    },
     https_get:function(url, callback_success, callback_error)
     {
         var _http  = https;
