@@ -16,7 +16,7 @@ module.exports =
                 {
                     const body = req.body;
 
-                    if( body && body.content && body.name )
+                    if( body && body.content_id && body.name )
                     {
                         const name       = body.name;
                         const content_id = body.content_id;
@@ -34,6 +34,7 @@ module.exports =
                                         contents[content_id] = 1;
 
                                         collection.insert({name:name, contents:contents, createtime:(new Date()).getTime()});
+                                        res.end('{status:0}');
                                     }
                                     else
                                     {
@@ -53,13 +54,22 @@ module.exports =
                                         collection.update(where,
                                             {$set:{contents:contents, updatetime:(new Date()).getTime()}}
                                         );
+
+                                        res.end('{status:0}');
+
                                     }
+                                }
+                                else
+                                {
+                                    res.end('{status:401}');
                                 }
                             }
                         );
                     }
-
-                    res.end('{status:0}');
+                    else
+                    {
+                        res.end('{status:400}');
+                    }
                 }
             };
 
