@@ -595,7 +595,7 @@ module.exports =
                             Content:'您好，欢迎来到互娱空间!'
                         };
 
-                        xmlStr = this.buildXML(_xmlInfo);
+                        xmlStr = SELF.buildXML(_xmlInfo);
                     },
                 };
 
