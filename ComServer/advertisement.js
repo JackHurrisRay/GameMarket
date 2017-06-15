@@ -16,9 +16,11 @@ module.exports =
                 {
                     const body = req.body;
 
-                    if( body && body.name )
+                    if( body && body.content && body.name )
                     {
-                        const name  = body.name;
+                        const name       = body.name;
+                        const content_id = body.content_id;
+
                         const where = {name:name};
 
                         collection.findOne(where,
@@ -28,15 +30,28 @@ module.exports =
                                 {
                                     if( !cursor )
                                     {
-                                        collection.insert({name:name, touchtimes:1, createtime:(new Date()).getTime()});
+                                        var contents = {};
+                                        contents[content_id] = 1;
+
+                                        collection.insert({name:name, contents:contents, createtime:(new Date()).getTime()});
                                     }
                                     else
                                     {
                                         var data = cursor;
-                                        data.touchtimes += 1;
+
+                                        var contents = data.contents;
+
+                                        if( contents[content_id] )
+                                        {
+                                            contents[content_id] += 1;
+                                        }
+                                        else
+                                        {
+                                            contents[content_id] = 1;
+                                        }
 
                                         collection.update(where,
-                                            {$set:{touchtimes:data.touchtimes, updatetime:(new Date()).getTime()}}
+                                            {$set:{contents:contents, updatetime:(new Date()).getTime()}}
                                         );
                                     }
                                 }
