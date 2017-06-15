@@ -47,32 +47,19 @@ module.exports =
                             }
                             else
                             {
-                                console.log('MongoDB failed');
+                                console.log('MongoDB failed :' + err.message);
+
+                                setTimeout(
+                                    function()
+                                    {
+                                        console.log('restart the MongoDB...');
+                                        SELF.init();
+                                    },
+                                    1000
+                                );
                             }
                         }
                     );
-
-                    /*
-                    this.Server.connect(db_url,
-                        function(err, db)
-                        {
-                            if(!err)
-                            {
-                                console.log('MongoDB connected Successfull');
-                                SELF.isConn = true;
-                            }
-                            else
-                            {
-                                console.log('MongoDB failed');
-                            }
-                        }
-                    );
-
-                    while(!SELF.isConn)
-                    {
-
-                    }
-                    */
 
                     return;
 

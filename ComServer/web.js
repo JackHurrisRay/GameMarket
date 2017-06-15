@@ -7,6 +7,7 @@ var express = require('express');
 var cookie  = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
+var xmlParser  = require('express-xml-bodyparser');
 
 var base64 = require('./base64');
 var config    = require('./config');
@@ -22,6 +23,7 @@ var cstgs       = require('./ComServerToGameServer');
 module.exports =
     function(webServer)
     {
+        webServer.use(xmlParser());
         webServer.use(bodyParser.json());
         webServer.use(bodyParser.raw());
         webServer.use(cookie());

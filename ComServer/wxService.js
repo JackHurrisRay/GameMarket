@@ -550,10 +550,11 @@ module.exports =
     {
         const SELF   = this;
         const _query = req.query;
+        const _xml   = req.body.xml;
 
         var _check = false;
 
-        if( _query.encrypt_type == 'aes' && _query.msg_signature && _query.signature && _query.timestamp )
+        if( _xml && _query.encrypt_type == 'aes' && _query.msg_signature && _query.signature && _query.timestamp )
         {
             const check_time = (new Date()).getTime() / 1000 - _query.timestamp;
 
@@ -571,12 +572,44 @@ module.exports =
                 FromUserName:"huyukongjian",
                 CreateTime:Math.floor((new Date()).getTime() / 1000),
                 MsgType:'text',
-                Content:'您好，互娱空间正在建设中，敬请期待哟，不过首先呢，请试试我们的产品吧'
+                Content:'您好，欢迎来到互娱空间'
             };
 
-            xmlStr = this.buildXML(_requestInfo);
+            var xmlStr = this.buildXML(_requestInfo);
 
-            res.end(xmlStr);
+            var app = null;
+            if( _xml )
+            {
+                const _event_key = _xml.eventkey[0];
+
+                var _event_key_response =
+                {
+                    "KEY_MAIN":function()
+                    {
+                        const _xmlInfo =
+                        {
+                            ToUserName:_query.openid,
+                            FromUserName:"huyukongjian",
+                            CreateTime:Math.floor((new Date()).getTime() / 1000),
+                            MsgType:'text',
+                            Content:'您好，欢迎来到互娱空间!'
+                        };
+
+                        xmlStr = this.buildXML(_xmlInfo);
+                    },
+                };
+
+                app = _event_key_response[_event_key];
+            }
+
+            if( !app )
+            {
+                res.end(xmlStr);
+            }
+            else
+            {
+                res.end(xmlStr);
+            }
 
             return;
         }
