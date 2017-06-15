@@ -578,7 +578,7 @@ module.exports =
             var xmlStr = this.buildXML(_requestInfo);
 
             var app = null;
-            if( _xml )
+            if( _xml.eventkey )
             {
                 const _event_key = _xml.eventkey[0];
 
