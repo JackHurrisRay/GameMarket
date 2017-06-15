@@ -4,8 +4,6 @@
 
 var Secret = require('./secret');
 var dbSystem = require('./mongoDB');
-dbSystem.init();
-
 const _ex_key = "Welcome to jack.L's Server";
 
 module.exports =

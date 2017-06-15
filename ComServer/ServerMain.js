@@ -8,11 +8,17 @@ var express = require('express');
 var serverApp = new express();
 var webApp = new express();
 
+var mongodb = require('./mongoDB');
 var routes = require('./route');
-routes(serverApp);
-
 var web = require('./web');
-web(webApp);
+
+mongodb.init(
+    function()
+    {
+        routes(serverApp);
+        web(webApp);
+    }
+);
 
 ////////////////
 

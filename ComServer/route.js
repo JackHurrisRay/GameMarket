@@ -2,7 +2,7 @@
  * Created by Jack.L on 2017/4/29.
  */
 
-var express = require('express');
+//var express = require('express');
 var cookie  = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
@@ -13,6 +13,7 @@ var sysLogin = require('./sysLogin')(system);
 var comtrade = require('./comtrade')(system);
 
 var tcpServer = require('./TCPServer');
+var adverSys  = require('./advertisement');
 
 module.exports = function(app)
 {
@@ -89,6 +90,21 @@ module.exports = function(app)
         }
     );
 
+    app.use('./sys',
+        function(req,res,next)
+        {
+            if( system.connected(req) == 1 )
+            {
+                next();
+            }
+            else
+            {
+                protocal.send_error(res, protocal.error_code.error_notlogin);
+            }
+        }
+    );
+
+    ////////
     app.post('/trade/test', function(req,res)
     {
         res.send("Welcome to Jack.L's Server");
@@ -157,15 +173,21 @@ module.exports = function(app)
         }
     );
 
+    ////////
+    app.put('/sys/advertisement',
+        function(req, res)
+        {
+            adverSys.listenTouch(req, res);
+        }
+    );
+
     ////
     var waitFor = system.waitFor;
 
     waitFor(
         function()
         {
-            return system.isDBConn()
-                && comtrade.isInit
-                ;
+            return comtrade.isInit;
         },
         function()
         {
