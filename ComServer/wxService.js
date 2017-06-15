@@ -608,6 +608,7 @@ module.exports =
             }
             else
             {
+                app();
                 res.end(xmlStr);
             }
 
