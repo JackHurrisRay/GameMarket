@@ -70,6 +70,36 @@ module.exports =
                     {
                         res.end('{status:400}');
                     }
+                },
+                getTouchTimes:function(req, res)
+                {
+                    const body = req.body;
+
+                    if( body &&  body.name )
+                    {
+                        const name       = body.name;
+                        const where = {name:name};
+
+                        collection.findOne(where,
+                            function(error, cursor) {
+                                if (!error) {
+
+                                    var msg = {};
+                                    msg.result = cursor.contents;
+                                    msg.status = 0;
+
+                                    res.end(JSON.stringify(msg));
+                                }
+                                else
+                                {
+                                    res.end('{status:401}');
+                                }
+                            });
+                    }
+                    else
+                    {
+                        res.end('{status:400}');
+                    }
                 }
             };
 

@@ -90,7 +90,7 @@ module.exports = function(app)
         }
     );
 
-    app.use('./sys',
+    app.use('/sys',
         function(req,res,next)
         {
             if( system.connected(req) == 1 )
@@ -178,6 +178,13 @@ module.exports = function(app)
         function(req, res)
         {
             adverSys.listenTouch(req, res);
+        }
+    );
+
+    app.put('/sys/get_adv_times',
+        function(req, res)
+        {
+            adverSys.getTouchTimes(req, res);
         }
     );
 
