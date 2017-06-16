@@ -90,6 +90,7 @@ module.exports = function(app)
         }
     );
 
+    /*
     app.use('/sys',
         function(req,res,next)
         {
@@ -103,6 +104,7 @@ module.exports = function(app)
             }
         }
     );
+    */
 
     ////////
     app.post('/trade/test', function(req,res)

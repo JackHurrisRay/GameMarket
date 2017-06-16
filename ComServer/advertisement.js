@@ -2,6 +2,8 @@
  * Created by Jack.L on 2017/6/16.
  */
 var mongodb = require('./mongoDB');
+var protocal = require('./protocal');
+
 var DB = mongodb.getDB();
 
 module.exports =
@@ -34,7 +36,8 @@ module.exports =
                                         contents[content_id] = 1;
 
                                         collection.insert({name:name, contents:contents, createtime:(new Date()).getTime()});
-                                        res.end('{status:0}');
+
+                                        protocal.send_ok(res);
                                     }
                                     else
                                     {
@@ -55,20 +58,20 @@ module.exports =
                                             {$set:{contents:contents, updatetime:(new Date()).getTime()}}
                                         );
 
-                                        res.end('{status:0}');
+                                        protocal.send_ok(res);
 
                                     }
                                 }
                                 else
                                 {
-                                    res.end('{status:401}');
+                                    protocal.send_error(res, 401);
                                 }
                             }
                         );
                     }
                     else
                     {
-                        res.end('{status:400}');
+                        protocal.send_error(res, 400);
                     }
                 },
                 getTouchTimes:function(req, res)
@@ -83,22 +86,17 @@ module.exports =
                         collection.findOne(where,
                             function(error, cursor) {
                                 if (!error) {
-
-                                    var msg = {};
-                                    msg.result = cursor.contents;
-                                    msg.status = 0;
-
-                                    res.end(JSON.stringify(msg));
+                                    res.send_ok(res, cursor.contents);
                                 }
                                 else
                                 {
-                                    res.end('{status:401}');
+                                    protocal.send_error(res, 401);
                                 }
                             });
                     }
                     else
                     {
-                        res.end('{status:400}');
+                        protocal.send_error(res, 400);
                     }
                 }
             };
