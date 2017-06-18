@@ -78,6 +78,11 @@ module.exports =
                                 },
                             ],
                         },
+                        {
+                            "type":"view",
+                            "name":"小游戏集合",
+                            "url":"http://game.huyukongjian.cn/littlegame/index.html",
+                        }
                     ]
                 }
             };
