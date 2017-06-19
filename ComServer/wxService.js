@@ -17,6 +17,7 @@ var sysLogin = require('./sysLogin')(system);
 var protocal = require('./protocal');
 var config   = require('./config');
 var base64   = require('./base64');
+var wxRobot  = require('./wxRobot');
 
 ////////
 function sha1(str){
@@ -228,14 +229,14 @@ module.exports =
         httpRequest.https_request_url(URL,_menu,
             function(data)
             {
-                console.log('WX MENU RECV:' + data);
-                var object = JSON.parse(data);
+                var object = data;
+                console.log('WX MENU RECV:' + JSON.stringify(object));
 
                 return;
             },
             function(error)
             {
-                console.log('WX MENU RECV:' + error);
+                console.log('WX MENU ERROR RECV:' + error);
 
                 return;
             }
@@ -567,7 +568,7 @@ module.exports =
         if( _check )
         {
             ////////
-            console.log("recv wx data:" + JSON.stringify(_xml) );
+            //console.log("recv wx data:" + JSON.stringify(_xml) );
 
             ////////
             const _requestInfo =
@@ -580,6 +581,7 @@ module.exports =
             };
 
             var xmlStr = this.buildXML(_requestInfo);
+            var _robotWork = false;
 
             var app = null;
             if( _xml.eventkey && _xml.msgtype && _xml.msgtype[0] == "event" )
@@ -611,11 +613,54 @@ module.exports =
                 if( _xml.msgtype == "text" && _xml.content )
                 {
                     //user input
-                    console.log("user input:" + _xml.content[0]);
+                    //console.log("user input:" + _xml.content[0]);
+
+                    _robotWork = true;
+
+                    wxRobot.chatToRobot(_query.openid, _xml.content[0],
+                        function(data)
+                        {
+                            //console.log("robot:" + JSON.stringify(data));
+
+                            if(data && data.text)
+                            {
+                                const _xmlInfo =
+                                {
+                                    ToUserName:_query.openid,
+                                    FromUserName:"huyukongjian",
+                                    CreateTime:Math.floor((new Date()).getTime() / 1000),
+                                    MsgType:'text',
+                                    Content:data.text
+                                };
+
+                                xmlStr = SELF.buildXML(_xmlInfo);
+                                res.end(xmlStr);
+                            }
+                            else
+                            {
+                                const _xmlInfo =
+                                {
+                                    ToUserName:_query.openid,
+                                    FromUserName:"huyukongjian",
+                                    CreateTime:Math.floor((new Date()).getTime() / 1000),
+                                    MsgType:'text',
+                                    Content:'[捂脸]'
+                                };
+
+                                xmlStr = SELF.buildXML(_xmlInfo);
+                                res.end(xmlStr);
+                            }
+                        }
+                    );
+
                 }
             }
 
-            if( !app )
+            if( _robotWork )
+            {
+
+            }
+            else if( !app )
             {
                 res.end(xmlStr);
             }
