@@ -566,6 +566,10 @@ module.exports =
 
         if( _check )
         {
+            ////////
+            console.log("recv wx data:" + JSON.stringify(_xml) );
+
+            ////////
             const _requestInfo =
             {
                 ToUserName:_query.openid,
@@ -578,7 +582,7 @@ module.exports =
             var xmlStr = this.buildXML(_requestInfo);
 
             var app = null;
-            if( _xml.eventkey )
+            if( _xml.eventkey && _xml.msgtype && _xml.msgtype[0] == "event" )
             {
                 const _event_key = _xml.eventkey[0];
 
@@ -600,6 +604,15 @@ module.exports =
                 };
 
                 app = _event_key_response[_event_key];
+            }
+            else
+            {
+                ////////
+                if( _xml.msgtype == "text" && _xml.content )
+                {
+                    //user input
+                    console.log("user input:" + _xml.content[0]);
+                }
             }
 
             if( !app )
