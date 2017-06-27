@@ -58,9 +58,20 @@ module.exports =
                 {
                     "button": [
                         {
-                            "type": "click",
                             "name": "互娱空间",
-                            "key": "KEY_MAIN",
+                            "sub_button": [
+
+                                {
+                                    "type": "click",
+                                    "name": "互娱空间",
+                                    "key": "KEY_MAIN",
+                                },
+                                {
+                                    "type": "view",
+                                    "name": "三维展示服务",
+                                    "url": "http://www.ll3d.com",
+                                },
+                            ],
                         },
                         {
                             "name": "系列产品",
